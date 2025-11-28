@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (White Card Theme) ---
+# --- 2. 🎨 CSS ตกแต่ง (White Card Theme - One Card Layout) ---
 st.markdown("""
 <style>
     /* นำเข้าฟอนต์ Prompt */
@@ -187,6 +187,7 @@ def import_and_predict(image_data, model):
 model = load_model()
 
 # --- ⭐ สร้างกรอบขาว (Card) เดียวครอบทั้งหมด ⭐ ---
+# สังเกตว่าเราเปิด with st.container() แค่ครั้งเดียวตรงนี้
 with st.container(border=True):
     
     # 1. ส่วนหัว (Icon + Titles)
@@ -214,11 +215,12 @@ with st.container(border=True):
             </div>
         """, unsafe_allow_html=True)
 
-    # 3. ส่วนแสดงผล (แสดงต่อจากส่วนอัปโหลดในกรอบเดียวกัน)
+    # 3. ส่วนแสดงผล (ย้ายเข้ามาอยู่ใน Indent ของ container แล้ว!)
     if file is not None:
         image = Image.open(file)
         
         st.markdown("<br>", unsafe_allow_html=True)
+        # จัดรูปให้อยู่ตรงกลางสวยๆ
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.image(image, use_container_width=True)
@@ -234,7 +236,8 @@ with st.container(border=True):
                     result_class = class_names[class_index]
                     confidence = np.max(predictions) * 100
 
-                st.markdown("<hr style='margin: 20px 0; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
+                # เส้นคั่นภายในการ์ด
+                st.markdown("<hr style='margin: 30px 0; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
                 
                 st.markdown(f"""
                     <div style="text-align: center;">
@@ -282,7 +285,7 @@ with st.container(border=True):
                     </div>
                 """, unsafe_allow_html=True)
 
-# 4. Footer (Credit)
+# 4. Footer (Credit) - อยู่นอกการ์ด เพื่อความสวยงาม
 st.markdown("""
     <div class="footer-credit">
         โครงงานวิจัยทางคอมพิวเตอร์ <br>
