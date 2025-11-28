@@ -154,7 +154,7 @@ if file is not None:
 # Footer
 st.markdown("""
 <div style="text-align: center; margin-top: 60px; color: #ffffff; font-size: 0.9rem; opacity: 0.8;">
-    โครงงานวิจัยทางคอมพิวเตอร์ • มหาวิทยาลัยราชภัฏอุบลราชธานี<br>
+    วิจัยทางคอมพิวเตอร์ สาขาวิชาคอมพิวเตอร์ศึกษา • มหาวิทยาลัยราชภัฏอุบลราชธานี<br>
     <span style="font-size: 0.8rem;">พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน</span>
 </div>
 """, unsafe_allow_html=True)
