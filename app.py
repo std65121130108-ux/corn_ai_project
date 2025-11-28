@@ -71,19 +71,17 @@ st.markdown("""
     
     /* 4. File Uploader: ปรับแต่งให้ดูสะอาดตาในกรอบ */
     .stFileUploader {
-        /* border: 2px dashed #FF4B2B;  <-- เอาเส้นขอบเดิมออก เพราะเรามีกรอบใหญ่แล้ว หรือจะเก็บไว้ก็ได้ */
         border-radius: 15px;
         padding: 5px;
-        /* background: rgba(255, 255, 255, 0.5); */
     }
     
     /* 5. ปรับแต่งกรอบที่เราเพิ่งสร้าง (st.container border) */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 2px solid rgba(255, 75, 43, 0.15) !important; /* เส้นขอบสีส้มจางๆ */
         border-radius: 20px !important;
-        background: rgba(255, 255, 255, 0.6); /* พื้นหลังขาวจางๆ */
+        background: #ffffff; /* <--- เปลี่ยนเป็นสีขาวทึบ (White) */
         padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* เพิ่มเงานิดหน่อยให้ดูลอยเด่น */
     }
     
     /* Custom Header Style */
