@@ -8,10 +8,10 @@ import os
 st.set_page_config(
     page_title="Chili Doctor AI",
     page_icon="🌶️",
-    layout="centered"
+    layout="centered" # จัดให้อยู่ตรงกลาง
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (ฉบับบังคับขาวด้วย Layer พิเศษ) ---
+# --- 2. 🎨 CSS ตกแต่ง (New Method: Style the Main Block directly) ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -19,56 +19,38 @@ st.markdown("""
     html, body, [class*="css"], [class*="st-"] {
         font-family: 'Prompt', sans-serif !important;
     }
-    
-    /* 1. Background: Gradient เต็มจอ */
+
+    /* 1. พื้นหลังใหญ่สุด (The Body) ให้เป็นสีแดง Gradient */
     .stApp {
         background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
         background-attachment: fixed !important;
     }
 
-    /* 2. บังคับการ์ดขาว (ใช้เทคนิค ::before สร้างพื้นหลังสีขาวทับลงไปเลย) */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        position: relative !important;
-        background: #ffffff !important; /* สั่งให้ขาว */
-        background-color: #ffffff !important;
-        z-index: 1;
+    /* 2. *** ไม้ตายใหม่ ***: ปรับพื้นที่เนื้อหาหลัก (Block Container) ให้เป็นการ์ดสีขาว */
+    [data-testid="block-container"] {
+        background-color: #ffffff !important; /* ขาวทึบ */
         border-radius: 30px !important;
-        border: none !important; /* เอาเส้นขอบเทาออก */
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
-        padding: 40px 30px !important;
-        max-width: 550px;
-        margin: auto;
+        padding: 3rem !important; /* เว้นขอบด้านใน */
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+        max-width: 550px; /* จำกัดความกว้างให้ดูเหมือนการ์ด */
+        margin: auto; /* จัดกึ่งกลาง */
+        margin-top: 50px; /* เว้นระยะจากขอบบน */
     }
 
-    /* สร้างแผ่นสีขาวรองหลังอีกชั้น เพื่อความชัวร์ 100% */
-    div[data-testid="stVerticalBlockBorderWrapper"]::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #ffffff !important;
-        border-radius: 30px !important;
-        z-index: -1;
-    }
-
-    /* 3. Typography: บังคับสีตัวหนังสือให้เข้ม (เพราะพื้นหลังขาวแล้ว) */
-    div[data-testid="stVerticalBlockBorderWrapper"] h1 {
-        color: #FF4B2B !important; /* หัวข้อสีแดง */
+    /* 3. Typography */
+    h1 {
+        color: #FF4B2B !important;
         font-weight: 800 !important;
-        font-size: 2.5rem !important;
-        margin-bottom: 5px !important;
         text-align: center;
-        text-shadow: none !important;
+        margin-bottom: 5px !important;
     }
     
     .subtitle {
         color: #666 !important;
         font-size: 1.1rem !important;
-        font-weight: 400;
-        margin-bottom: 20px;
         text-align: center;
+        margin-bottom: 20px;
+        font-weight: 400;
     }
     
     .tech-badge {
@@ -86,13 +68,12 @@ st.markdown("""
         background-color: #f8f9fa !important;
         border: 2px dashed #FF4B2B !important;
         border-radius: 20px !important;
-        padding: 30px !important;
+        padding: 20px !important;
     }
     [data-testid="stFileUploaderDropzone"] div div::before {
         content: "Drag & Drop Image Here";
         color: #555;
         font-weight: 600;
-        font-size: 1rem;
     }
     [data-testid="stFileUploaderDropzone"] small {
         color: #888 !important;
@@ -109,7 +90,7 @@ st.markdown("""
         font-weight: 600 !important;
         box-shadow: 0 10px 20px rgba(255, 75, 43, 0.3) !important;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 15px;
         transition: transform 0.2s;
     }
     div.stButton > button:hover {
@@ -119,30 +100,17 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Result Styling */
-    .result-container {
-        text-align: center;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-    }
-    .result-title {
-        color: #FF4B2B;
-        font-size: 2.2rem;
-        font-weight: 800;
-        margin: 10px 0;
-    }
-
     /* Footer */
     .footer {
         text-align: center;
-        margin-top: 40px;
-        color: rgba(255,255,255,0.8);
+        margin-top: 30px;
+        color: #999; /* สีเทาเข้มขึ้นเพราะอยู่บนพื้นขาวแล้ว */
         font-size: 0.8rem;
     }
-
-    #MainMenu, header, footer {visibility: hidden;}
     
+    /* ซ่อน Header เดิมของ Streamlit */
+    #MainMenu, header, footer {visibility: hidden;}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -165,110 +133,110 @@ def import_and_predict(image_data, model):
     data[0] = img_array
     return model.predict(data)
 
-# --- 4. ส่วนแสดงผล UI ---
+# --- 4. ส่วนแสดงผล UI (ไม่ต้องใช้ st.container แล้ว) ---
 
 model = load_model()
 
-# สร้าง Container (Border=True เพื่อให้ CSS จับ ID ได้)
-with st.container(border=True):
+# --- ส่วนเนื้อหา ---
+# ไม่ต้องมี with st.container(border=True): แล้ว เพราะเราแต่ง block-container แทน
+
+# Header
+st.markdown("""
+    <div style="text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 5px;">🌶️</div>
+        <h1>Chili Doctor AI</h1>
+        <div class="subtitle">ระบบผู้เชี่ยวชาญตรวจวินิจฉัยโรคพริกอัจฉริยะ</div>
+        <span class="tech-badge">Deep Learning (EfficientNetB4)</span>
+    </div>
+""", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# พื้นที่อัปโหลด
+file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+
+if file is not None:
+    image = Image.open(file)
     
-    # Header
-    st.markdown("""
-        <div style="text-align: center;">
-            <div style="font-size: 4rem; margin-bottom: 5px;">🌶️</div>
-            <h1>Chili Doctor AI</h1>
-            <div class="subtitle">ระบบผู้เชี่ยวชาญตรวจวินิจฉัยโรคพริกอัจฉริยะ</div>
-            <span class="tech-badge">Deep Learning (EfficientNetB4)</span>
-        </div>
-    """, unsafe_allow_html=True)
-
+    # แสดงรูปภาพ
     st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        st.image(image, use_container_width=True)
+    
+    # ปุ่มกด
+    if st.button("🚀 วินิจฉัยโรค (Start Diagnosis)"):
+        if model is None:
+            st.error("⚠️ Model file not found.")
+        else:
+            with st.spinner('กำลังวิเคราะห์...'):
+                predictions = import_and_predict(image, model)
+                class_names = ['Healthy', 'Leaf Curl', 'Leaf Spot', 'Whitefly', 'Yellow']
+                class_index = np.argmax(predictions)
+                result_class = class_names[class_index]
+                confidence = np.max(predictions) * 100
 
-    # พื้นที่อัปโหลด
-    file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+            # --- ส่วนแสดงผลลัพธ์ ---
+            treatment_text = ""
+            icon = ""
+            box_color = "#f8f9fa"
+            border_color = "#ccc"
+            diagram_query = "" # placeholder for diagram query
+            
+            if result_class == 'Healthy':
+                treatment_text = "ต้นพริกแข็งแรงดีมาก! แนะนำให้ดูแลรดน้ำและใส่ปุ๋ยบำรุงตามปกติ"
+                icon = "🌿"
+                box_color = "#e8f5e9" # เขียวอ่อน
+                border_color = "#4caf50"
+            elif result_class == 'Leaf Curl':
+                treatment_text = "โรคใบหงิก: ระวังแมลงพาหะ (เช่น แมลงหวี่ขาว) กำจัดวัชพืช และใช้สารสกัดสะเดาฉีดพ่น"
+                icon = "🍂"
+                box_color = "#fff3e0" # ส้มอ่อน
+                border_color = "#ff9800"
+                diagram_query = "leaf curl disease chili cycle"
+            elif result_class == 'Leaf Spot':
+                treatment_text = "โรคใบจุด: เกิดจากเชื้อรา ให้ตัดแต่งใบที่เป็นโรคเผาทำลาย และฉีดพ่นสารป้องกันกำจัดเชื้อรา"
+                icon = "🌑"
+                box_color = "#ffebee" # แดงอ่อน
+                border_color = "#f44336"
+                diagram_query = "cercospora leaf spot chili cycle"
+            elif result_class == 'Whitefly':
+                treatment_text = "แมลงหวี่ขาว: เป็นพาหะนำโรค ให้ใช้กับดักกาวเหนียวสีเหลือง หรือฉีดพ่นน้ำหมักสมุนไพรไล่แมลง"
+                icon = "🪰"
+                box_color = "#e3f2fd" # ฟ้าอ่อน
+                border_color = "#2196f3"
+                diagram_query = "whitefly life cycle chili"
+            elif result_class == 'Yellow':
+                treatment_text = "อาการใบเหลือง: อาจเกิดจากการขาดธาตุอาหาร ตรวจสอบสภาพดินและใส่ปุ๋ยบำรุง"
+                icon = "🟡"
+                box_color = "#fffde7" # เหลืองอ่อน
+                border_color = "#ffeb3b"
+                diagram_query = "nitrogen deficiency chili leaves"
 
-    if file is not None:
-        image = Image.open(file)
-        
-        # แสดงรูปภาพ
-        st.markdown("<br>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1, 4, 1])
-        with col2:
-            st.image(image, use_container_width=True)
-        
-        # ปุ่มกด
-        if st.button("🚀 วินิจฉัยโรค (Start Diagnosis)"):
-            if model is None:
-                st.error("⚠️ Model file not found.")
-            else:
-                with st.spinner('กำลังวิเคราะห์...'):
-                    predictions = import_and_predict(image, model)
-                    class_names = ['Healthy', 'Leaf Curl', 'Leaf Spot', 'Whitefly', 'Yellow']
-                    class_index = np.argmax(predictions)
-                    result_class = class_names[class_index]
-                    confidence = np.max(predictions) * 100
-
-                # --- ส่วนแสดงผลลัพธ์ (อยู่ในกรอบขาว) ---
-                treatment_text = ""
-                icon = ""
-                box_color = "#f8f9fa"
-                border_color = "#ccc"
-                diagram_query = "" # placeholder for diagram query
-                
-                if result_class == 'Healthy':
-                    treatment_text = "ต้นพริกแข็งแรงดีมาก! แนะนำให้ดูแลรดน้ำและใส่ปุ๋ยบำรุงตามปกติ"
-                    icon = "🌿"
-                    box_color = "#e8f5e9" # เขียวอ่อน
-                    border_color = "#4caf50"
-                elif result_class == 'Leaf Curl':
-                    treatment_text = "โรคใบหงิก: ระวังแมลงพาหะ (เช่น แมลงหวี่ขาว) กำจัดวัชพืช และใช้สารสกัดสะเดาฉีดพ่น"
-                    icon = "🍂"
-                    box_color = "#fff3e0" # ส้มอ่อน
-                    border_color = "#ff9800"
-                    diagram_query = "leaf curl disease chili cycle"
-                elif result_class == 'Leaf Spot':
-                    treatment_text = "โรคใบจุด: เกิดจากเชื้อรา ให้ตัดแต่งใบที่เป็นโรคเผาทำลาย และฉีดพ่นสารป้องกันกำจัดเชื้อรา"
-                    icon = "🌑"
-                    box_color = "#ffebee" # แดงอ่อน
-                    border_color = "#f44336"
-                    diagram_query = "cercospora leaf spot chili cycle"
-                elif result_class == 'Whitefly':
-                    treatment_text = "แมลงหวี่ขาว: เป็นพาหะนำโรค ให้ใช้กับดักกาวเหนียวสีเหลือง หรือฉีดพ่นน้ำหมักสมุนไพรไล่แมลง"
-                    icon = "🪰"
-                    box_color = "#e3f2fd" # ฟ้าอ่อน
-                    border_color = "#2196f3"
-                    diagram_query = "whitefly life cycle chili"
-                elif result_class == 'Yellow':
-                    treatment_text = "อาการใบเหลือง: อาจเกิดจากการขาดธาตุอาหาร ตรวจสอบสภาพดินและใส่ปุ๋ยบำรุง"
-                    icon = "🟡"
-                    box_color = "#fffde7" # เหลืองอ่อน
-                    border_color = "#ffeb3b"
-                    diagram_query = "nitrogen deficiency chili leaves"
-
-                st.markdown(f"""
-                    <div class="result-container">
-                        <div style="color: #888; font-size: 0.9rem;">ผลการวิเคราะห์</div>
-                        <div class="result-title">{result_class.upper()}</div>
-                        <span style="background: #FF4B2B; color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
-                            ความแม่นยำ: {confidence:.2f}%
-                        </span>
-                        
-                        <div style="background-color: {box_color}; border-left: 5px solid {border_color}; padding: 20px; border-radius: 10px; text-align: left; margin-top: 25px; display: flex; align-items: start;">
-                            <div style="font-size: 2rem; margin-right: 15px;">{icon}</div>
-                            <div>
-                                <h4 style="margin: 0 0 5px 0; color: #333;">คำแนะนำ</h4>
-                                <p style="color: #444; margin: 0; line-height: 1.5;">{treatment_text}</p>
-                            </div>
+            st.markdown(f"""
+                <div style="text-align: center; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <div style="color: #888; font-size: 0.9rem;">ผลการวิเคราะห์</div>
+                    <div style="color: #FF4B2B; font-size: 2.2rem; font-weight: 800; margin: 10px 0;">{result_class.upper()}</div>
+                    <span style="background: #FF4B2B; color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600;">
+                        ความแม่นยำ: {confidence:.2f}%
+                    </span>
+                    
+                    <div style="background-color: {box_color}; border-left: 5px solid {border_color}; padding: 20px; border-radius: 10px; text-align: left; margin-top: 25px; display: flex; align-items: start;">
+                        <div style="font-size: 2rem; margin-right: 15px;">{icon}</div>
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; color: #333;">คำแนะนำ</h4>
+                            <p style="color: #444; margin: 0; line-height: 1.5;">{treatment_text}</p>
                         </div>
                     </div>
-                """, unsafe_allow_html=True)
-                
-                # Trigger specific diagrams for diseases
-                if diagram_query:
-                     st.markdown(f"", unsafe_allow_html=True)
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Trigger specific diagrams for diseases
+            if diagram_query:
+                 st.markdown(f"", unsafe_allow_html=True)
 
 
-# Footer นอกกรอบขาว
+# Footer
 st.markdown("""
     <div class="footer">
         Computer Research Project • UBRU<br>
