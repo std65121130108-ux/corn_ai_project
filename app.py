@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (Clone from HTML Design) ---
+# --- 2. 🎨 CSS ตกแต่ง (White Card Theme) ---
 st.markdown("""
 <style>
     /* นำเข้าฟอนต์ Prompt */
@@ -27,12 +27,12 @@ st.markdown("""
         background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
     }
 
-    /* 2. ปรับแต่ง "การ์ด" (Card) ให้เป็นสีขาวทึบ */
+    /* 2. ปรับแต่ง "กรอบ/การ์ด" (Container) ให้เป็นสีขาวทึบ */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #ffffff !important; /* สีขาวทึบ 100% */
+        background-color: #FFFFFF !important; /* สีขาวทึบ 100% */
         border-radius: 24px !important;
         border: none !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important; /* เงาชัดๆ */
         padding: 40px 30px !important;
         margin-bottom: 20px;
     }
@@ -75,7 +75,7 @@ st.markdown("""
     h1 {
         color: #333 !important;
         font-weight: 600 !important;
-        font-size: 1.8rem !important; /* ปรับขนาดให้พอดีการ์ด */
+        font-size: 1.8rem !important;
         margin: 0 !important;
         padding: 0 !important;
         text-align: center;
@@ -90,7 +90,7 @@ st.markdown("""
         margin-bottom: 30px;
     }
 
-    /* 5. ปุ่มกด (Button) ให้เหมือน .btn-modern */
+    /* 5. ปุ่มกด (Button) */
     div.stButton > button {
         background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%) !important;
         color: white !important;
@@ -119,16 +119,15 @@ st.markdown("""
     /* 7. Footer */
     .footer-credit {
         font-size: 0.8rem;
-        color: #999;
+        color: #fff; /* สีขาว เพื่อให้อ่านง่ายบนพื้นหลังส้ม */
         margin-top: 30px;
-        padding-bottom: 0px;
-        border-top: 1px solid #eee;
         padding-top: 15px;
         text-align: center;
+        opacity: 0.8;
     }
     .badge-custom {
-        background-color: #f8f9fa;
-        color: #212529;
+        background-color: rgba(255,255,255,0.2);
+        color: #fff;
         padding: 0.35em 0.65em;
         font-size: 0.75em;
         font-weight: 700;
@@ -181,10 +180,10 @@ def import_and_predict(image_data, model):
 
 model = load_model()
 
-# สร้าง Container ที่มีขอบ (ซึ่ง CSS เราจะแปลงเป็น Glass Card)
+# สร้าง Container (Card สีขาว)
 with st.container(border=True):
     
-    # 1. ส่วนหัว (Icon + Titles) - เขียน HTML ตรงๆ ให้เหมือนต้นฉบับ
+    # 1. ส่วนหัว (Icon + Titles)
     st.markdown("""
         <div class="card-header-custom">
             <div class="app-icon">🌶️</div>
@@ -199,10 +198,9 @@ with st.container(border=True):
         </p>
     """, unsafe_allow_html=True)
 
-    # 2. ส่วนอัปโหลด (มาแทนปุ่ม Link ใน HTML)
+    # 2. ส่วนอัปโหลด
     file = st.file_uploader("", type=["jpg", "png", "jpeg"])
     
-    # ถ้ายังไม่เลือกไฟล์ ให้แสดงคำแนะนำเล็กๆ
     if file is None:
         st.markdown("""
             <div style="text-align: center; margin-top: 10px;">
@@ -210,7 +208,7 @@ with st.container(border=True):
             </div>
         """, unsafe_allow_html=True)
 
-    # 3. ส่วนแสดงผล (จะโผล่มาต่อเมื่ออัปโหลดไฟล์)
+    # 3. ส่วนแสดงผล
     if file is not None:
         image = Image.open(file)
         
@@ -219,7 +217,6 @@ with st.container(border=True):
         with col2:
             st.image(image, use_container_width=True)
             
-        # ปุ่มกดวิเคราะห์ (CSS แต่งให้เหมือนปุ่มใน HTML)
         if st.button("🚀 เริ่มต้นวิเคราะห์โรค"):
             if model is None:
                 st.error("❌ ไม่สามารถโหลดโมเดลได้")
@@ -231,7 +228,6 @@ with st.container(border=True):
                     result_class = class_names[class_index]
                     confidence = np.max(predictions) * 100
 
-                # แสดงผลลัพธ์
                 st.markdown("<hr style='margin: 20px 0; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
                 
                 st.markdown(f"""
@@ -242,7 +238,6 @@ with st.container(border=True):
                     </div>
                 """, unsafe_allow_html=True)
 
-                # คำแนะนำ
                 treatment_text = ""
                 bg_color = "#fff3cd"
                 text_color = "#856404"
@@ -266,14 +261,14 @@ with st.container(border=True):
                     </div>
                 """, unsafe_allow_html=True)
 
-    # 4. ส่วน Footer (Credit)
-    st.markdown("""
-        <div class="footer-credit">
-            โครงงานวิจัยทางคอมพิวเตอร์ <br>
-            <strong>มหาวิทยาลัยราชภัฏอุบลราชธานี</strong> <br>
-            <span class="badge-custom">v.1.0 (Final Release)</span> <br>
-            <div style="margin-top: 10px; font-size: 0.75rem; color: #999;">
-                พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน
-            </div>
+# 4. Footer (Credit)
+st.markdown("""
+    <div class="footer-credit">
+        โครงงานวิจัยทางคอมพิวเตอร์ <br>
+        <strong>มหาวิทยาลัยราชภัฏอุบลราชธานี</strong> <br>
+        <span class="badge-custom">v.1.0 (Final Release)</span> <br>
+        <div style="margin-top: 10px; font-size: 0.75rem; color: #eee;">
+            พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน
         </div>
-    """, unsafe_allow_html=True)
+    </div>
+""", unsafe_allow_html=True)
