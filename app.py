@@ -258,17 +258,30 @@ camera_key = f"camera_{st.session_state['reset_count']}"
 uploader_key = f"uploader_{st.session_state['reset_count']}"
 
 with tab_cam:
-    # ส่วนกล้องถ่ายรูป
+    # 1. Widget กล้อง
     camera_image = st.camera_input("กล้องถ่ายรูป", label_visibility="hidden", key=camera_key)
     
     if camera_image is not None:
         img_file_buffer = camera_image
     
-    # แก้ไขตรงนี้: เอาข้อความใส่ใน st.markdown และเปิด unsafe_allow_html=True
-    st.markdown(
-        "<div style='text-align: center; color: #666; margin-top: 10px;'>กดปุ่ม Take Photo ใต้รูปภาพเพื่อถ่ายรูป</div>", 
-        unsafe_allow_html=True
-    )
+    # 2. ข้อความแจ้งเตือน (ไม้ตาย: บังคับสีขาวที่กล่อง + ปรับขนาดให้พอดีคำ)
+    st.markdown("""
+        <div style="text-align: center; margin-top: 20px;">
+            <div style="
+                display: inline-block; /* ⭐ ทำให้กล่องหดเหลือเท่าตัวอักษร ⭐ */
+                background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%);
+                color: white !important; /* ⭐ บังคับสีขาวที่ตัวกล่องโดยตรง ⭐ */
+                padding: 15px 30px; /* เพิ่ม padding แนวนอนให้ดูสวยขึ้น */
+                border-radius: 50px;
+                box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+                font-weight: 600;
+                font-size: 1.1rem;
+                cursor: default;
+            ">
+                📸 กดปุ่ม "Take Photo" ด้านบนเพื่อถ่ายรูป
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 with tab_up:
     # ใช้ dynamic key เช่นกัน
