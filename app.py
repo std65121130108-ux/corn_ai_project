@@ -17,21 +17,21 @@ st.markdown("""
     /* นำเข้าฟอนต์ Prompt */
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
     
-    /* 1. พื้นหลัง: สีส้มแดงสดใส (ตามหน้า HTML Portal) */
+    /* 1. พื้นหลัง: สีส้มแดงสดใส */
     .stApp {
         background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
         font-family: 'Prompt', sans-serif;
         color: #333333;
     }
 
-    /* 2. กล่องหลัก: สไตล์กระจก (Glassmorphism) เหมือน .glass-card */
+    /* 2. กล่องหลัก (Main Container) */
     .main .block-container {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        border-radius: 24px; /* ความโค้งเท่ากับ HTML */
+        border-radius: 24px;
         padding: 2.5rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); /* เงาเท่ากับ HTML */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
         max-width: 700px;
         margin-top: 2rem;
         border: 1px solid rgba(255, 255, 255, 0.3);
@@ -39,7 +39,7 @@ st.markdown("""
 
     /* หัวข้อ */
     h1 {
-        color: #333; /* สีเทาเข้ม */
+        color: #333;
         font-weight: 600;
         text-align: center;
         padding-bottom: 0.5rem;
@@ -69,23 +69,27 @@ st.markdown("""
         color: white;
     }
     
-    /* 4. File Uploader: เส้นขอบสีแดง */
+    /* 4. File Uploader: ปรับแต่งให้ดูสะอาดตาในกรอบ */
     .stFileUploader {
-        border: 2px dashed #FF4B2B;
+        /* border: 2px dashed #FF4B2B;  <-- เอาเส้นขอบเดิมออก เพราะเรามีกรอบใหญ่แล้ว หรือจะเก็บไว้ก็ได้ */
         border-radius: 15px;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.5);
-        transition: border-color 0.3s;
+        padding: 5px;
+        /* background: rgba(255, 255, 255, 0.5); */
     }
-    .stFileUploader:hover {
-        border-color: #c0392b;
-        background-color: rgba(255, 255, 255, 0.8);
+    
+    /* 5. ปรับแต่งกรอบที่เราเพิ่งสร้าง (st.container border) */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border: 2px solid rgba(255, 75, 43, 0.15) !important; /* เส้นขอบสีส้มจางๆ */
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, 0.6); /* พื้นหลังขาวจางๆ */
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
     
     /* Custom Header Style */
     .custom-header {
         text-align: center;
-        margin-bottom: 35px;
+        margin-bottom: 20px;
     }
     .app-icon {
         width: 100px;
@@ -96,9 +100,10 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         font-size: 50px;
-        margin: 0 auto 20px;
+        margin: 0 auto 15px;
         box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
         animation: pulse 2s infinite;
+        border: 4px solid white;
     }
     .subtitle {
         color: #d32f2f;
@@ -168,22 +173,6 @@ def import_and_predict(image_data, model):
 
 # --- 4. ส่วนแสดงผล (UI) ---
 
-# สร้างส่วนหัวแบบ Custom HTML เพื่อให้เหมือนหน้า Portal
-st.markdown("""
-    <div class="custom-header">
-        <div class="app-icon">🌶️</div>
-        <div class="subtitle">AI Expert System</div>
-        <h1 style="margin-top: 0; color: #333;">Chili Doctor AI</h1>
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<p style="text-align: center; color: #555; margin-bottom: 30px; line-height: 1.6;">
-    ระบบผู้เชี่ยวชาญปัญญาประดิษฐ์เพื่อวินิจฉัยโรคของพริกจากใบ <br>
-    <span style="font-size: 0.9rem; color: #888;">(กรุณาอัปโหลดรูปภาพที่เห็นใบพริกชัดเจน)</span>
-</p>
-""", unsafe_allow_html=True)
-
 # โหลดโมเดล
 model = load_model()
 
@@ -192,15 +181,35 @@ if model is None:
 
 class_names = ['healthy', 'leaf curl', 'leaf spot', 'whitefly', 'yellow']
 
-# ส่วนอัปโหลด
-file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+# --- สร้างกรอบ (Input Frame) ---
+# ใช้ st.container(border=True) เพื่อสร้างกรอบล้อมรอบส่วน Header และ Input
+with st.container(border=True):
+    # สร้างส่วนหัวแบบ Custom HTML เพื่อให้เหมือนหน้า Portal
+    st.markdown("""
+        <div class="custom-header">
+            <div class="app-icon">🌶️</div>
+            <div class="subtitle">AI Expert System</div>
+            <h1 style="margin-top: 0; color: #333;">Chili Doctor AI</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <p style="text-align: center; color: #555; margin-bottom: 20px; line-height: 1.6;">
+        ระบบผู้เชี่ยวชาญปัญญาประดิษฐ์เพื่อวินิจฉัยโรคของพริกจากใบ <br>
+        <span style="font-size: 0.9rem; color: #888;">(กรุณาอัปโหลดรูปภาพที่เห็นใบพริกชัดเจน)</span>
+    </p>
+    """, unsafe_allow_html=True)
+
+    # ส่วนอัปโหลด (อยู่ในกรอบด้วย)
+    file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+
+# --- ส่วนแสดงผลลัพธ์ (อยู่นอกกรอบ Input) ---
 if file is None:
     st.info("👆 กรุณาเลือกรูปภาพ (.jpg, .png) จากเครื่องของคุณ")
 else:
     image = Image.open(file)
     # แสดงรูปภาพแบบจัดกึ่งกลางและมีมุมมน
-    st.markdown('<div style="text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<br><div style="text-align: center;">', unsafe_allow_html=True)
     st.image(image, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
