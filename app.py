@@ -11,149 +11,115 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (Design: Premium Glassmorphism) ---
-import streamlit as st
-import tensorflow as tf
-from PIL import Image, ImageOps
-import numpy as np
-import os
-
-# --- 1. ตั้งค่าหน้าเว็บ ---
-st.set_page_config(
-    page_title="Chili Doctor AI",
-    page_icon="🌶️",
-    layout="centered"
-)
-
-# --- 2. 🎨 CSS ตกแต่ง (Design: Premium Glassmorphism) ---
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
-    /* Global Font Settings */
+
     html, body, [class*="css"], [class*="st-"] {
         font-family: 'Prompt', sans-serif !important;
     }
-    
-    /* 1. Background: สีส้มแดงไล่เฉด สดใส */
+
+    /* --- Background ไล่สีแบบ HTML --- */
     .stApp {
         background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
         background-attachment: fixed !important;
+        min-height: 100vh !important;
+        padding: 20px !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    /* 2. Glass Card Container (หัวใจหลักของความสวย) */
+    /* --- Glass Card เหมือน HTML (95% similar) --- */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(255, 255, 255, 0.85) !important; /* โปร่งแสงนิดๆ */
-        backdrop-filter: blur(20px) !important; /* เบลอฉากหลังให้เนียน */
-        -webkit-backdrop-filter: blur(20px) !important;
-        border-radius: 30px !important;
-        border: 1px solid rgba(255, 255, 255, 0.6) !important; /* ขอบขาวจางๆ */
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important; /* เงาฟุ้งลึก */
-        padding: 40px 30px !important;
-        max-width: 480px;
-        margin: auto;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-radius: 24px !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+        max-width: 480px !important;
+        margin: auto !important;
+        padding: 30px 25px !important;
+        animation: fadeUp 0.8s ease-out;
     }
 
-    /* 3. Typography Cleanup */
+    /* Pulse Icon (เหมือน HTML) */
+    .app-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        margin: 0 auto 15px;
+        box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    /* Header Typography */
     h1 {
-        color: #d32f2f !important;
-        font-weight: 700 !important;
-        font-size: 2.2rem !important;
-        margin-bottom: 5px !important;
-        letter-spacing: -0.5px;
+        font-weight: 600 !important;
+        color: #333 !important;
+        font-size: 1.9rem !important;
+        margin-bottom: 0 !important;
+        text-align: center;
     }
+
     .subtitle {
-        color: #555 !important;
-        font-size: 1rem !important;
-        font-weight: 400;
-        margin-bottom: 15px;
-    }
-    .badge {
-        background: #ffebee;
-        color: #c62828;
-        padding: 5px 15px;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        border: 1px solid rgba(198, 40, 40, 0.1);
+        color: #d32f2f !important;
+        font-weight: 500;
+        font-size: 0.9rem !important;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        text-align: center;
+        margin-top: -5px;
     }
 
-    /* 4. Upload Area - ให้ดูสะอาดตา */
-    [data-testid="stFileUploaderDropzone"] {
-        background-color: white !important;
-        border: 2px dashed #FF8A80 !important; /* เส้นประสีพีช */
-        border-radius: 20px !important;
-        padding: 30px 20px !important;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stFileUploaderDropzone"]:hover {
-        border-color: #d32f2f !important;
-        background-color: #fffaf9 !important;
-    }
-    [data-testid="stFileUploaderDropzone"] div div::before {
-        content: "Drag & Drop Image Here";
-        color: #333;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    [data-testid="stFileUploaderDropzone"] small {
-        color: #999 !important;
-        margin-top: 5px;
-    }
-
-    /* 5. Modern Button */
+    /* Button เหมือน HTML */
     div.stButton > button {
         background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%) !important;
-        color: white !important;
         border: none !important;
-        border-radius: 15px !important;
-        padding: 15px 25px !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        box-shadow: 0 5px 15px rgba(255, 75, 43, 0.3) !important;
-        width: 100%;
-        transition: all 0.3s ease;
-        margin-top: 15px;
-    }
-    div.stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 75, 43, 0.5) !important;
-    }
-    div.stButton > button p {
         color: white !important;
+        padding: 15px 40px !important;
+        border-radius: 50px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4) !important;
+        transition: all 0.3s ease;
+        width: 100%;
     }
 
-    /* 6. Animations */
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
-    }
-    .floating-icon {
-        animation: float 3s ease-in-out infinite;
-        font-size: 4.5rem;
-        display: inline-block;
-        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+    div.stButton > button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6) !important;
     }
 
-    /* Footer */
-    .footer {
-        text-align: center;
-        margin-top: 40px;
-        color: rgba(255,255,255,0.9);
-        font-size: 0.8rem;
-        font-weight: 300;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* File uploader – minimal white glass */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #ffffff !important;
+        border: 2px dashed #FF8A80 !important;
+        border-radius: 16px !important;
+        padding: 25px !important;
     }
-    
-    /* Utilities */
-    .stImage > img {
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+    /* Keyframe for fadeUp */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
+
+    /* Pulse animation */
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,75,43,0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,75,43,0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,75,43,0); }
+    }
+
     #MainMenu, header, footer {visibility: hidden;}
-    
 </style>
 """, unsafe_allow_html=True)
 
