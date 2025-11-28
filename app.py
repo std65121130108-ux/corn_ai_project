@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (Premium & Clean Design) ---
+# --- 2. 🎨 CSS ตกแต่ง (Clean & Minimal Style) ---
 st.markdown("""
 <style>
     /* นำเข้าฟอนต์ Prompt */
@@ -22,32 +22,23 @@ st.markdown("""
         font-family: 'Prompt', sans-serif;
     }
     
-    /* 1. พื้นหลังหลัก (Background): สีส้มแดงไล่เฉด */
-    .stApp {
-        background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+    /* 1. พื้นหลังหลัก: สีส้มแดง Gradient สวยๆ */
+    .stApp, [data-testid="stAppViewContainer"] {
+        background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
     }
 
-    /* 2. ปรับแต่ง "กรอบสีขาว" (Card) ให้สวยหรู */
+    /* 2. ปรับแต่ง "การ์ดสีขาว" (Card) */
     /* เป้าหมายคือ st.container(border=True) */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #FFFFFF; /* สีขาวทึบ */
-        border-radius: 24px;
-        padding: 40px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* เงานุ่มๆ */
-        border: none;
+        background-color: #FFFFFF !important;
+        border-radius: 24px !important;
+        padding: 40px !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2) !important;
+        border: none !important;
         margin-bottom: 20px;
     }
     
-    /* 3. จัดการข้อความ (Typography) */
-    .app-title {
-        color: #333333;
-        font-weight: 700;
-        font-size: 2.2rem;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-        letter-spacing: -0.5px;
-    }
+    /* 3. จัดการ Typography (ตัวหนังสือ) ให้อ่านง่าย */
     .app-subtitle {
         color: #FF4B2B;
         font-weight: 600;
@@ -55,83 +46,104 @@ st.markdown("""
         letter-spacing: 1.5px;
         text-transform: uppercase;
         text-align: center;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
     }
+    
+    .app-title {
+        color: #333333;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        letter-spacing: -1px;
+        line-height: 1.2;
+    }
+    
     .app-desc {
-        color: #666666;
+        color: #555555;
         text-align: center;
         font-size: 1.1rem;
+        font-weight: 400;
         margin-top: 15px;
         line-height: 1.6;
     }
+    
     .app-note {
-        color: #FF4B2B;
-        font-size: 0.9rem;
+        color: #FF6B6B;
+        font-size: 0.95rem;
         text-align: center;
         font-weight: 500;
         margin-bottom: 30px;
     }
     
-    /* 4. ไอคอนพริกตรงกลาง */
-    .icon-wrapper {
+    /* 4. ปรับแต่งช่องอัปโหลดไฟล์ (File Uploader) */
+    /* พื้นที่ Dropzone */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #F9FAFB !important;
+        border: 2px dashed #E5E7EB !important;
+        border-radius: 16px !important;
+        padding: 30px !important;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    [data-testid="stFileUploaderDropzone"]:hover {
+        border-color: #FF4B2B !important;
+        background-color: #FFF5F5 !important;
+    }
+    
+    /* ซ่อนไอคอนเล็กๆ เดิมของ Streamlit */
+    [data-testid="stFileUploaderDropzone"] div svg {
+        display: none;
+    }
+    
+    /* ข้อความใน Dropzone */
+    [data-testid="stFileUploaderDropzone"] div div::before {
+        content: "📂 คลิก หรือ ลากไฟล์รูปภาพมาวางที่นี่";
+        font-size: 1.1rem;
+        color: #6B7280;
+        font-weight: 500;
+        display: block;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    
+    /* 5. ปุ่มกด (Button) */
+    div.stButton > button {
+        background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 14px 24px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        box-shadow: 0 4px 6px -1px rgba(255, 75, 43, 0.3) !important;
+        margin-top: 15px !important;
+        transition: all 0.2s !important;
+    }
+    
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(255, 75, 43, 0.4) !important;
+    }
+    
+    /* ไอคอนพริก */
+    .icon-container {
         display: flex;
         justify-content: center;
         margin-bottom: 20px;
     }
     .main-icon {
         font-size: 60px;
-        background: #fff5f5;
+        background: #FFF5F5;
         border-radius: 50%;
         width: 100px;
         height: 100px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 25px rgba(255, 75, 43, 0.15);
-    }
-
-    /* 5. ปรับช่องอัปโหลดไฟล์ (File Uploader) ให้ดูดี */
-    [data-testid="stFileUploaderDropzone"] {
-        background-color: #FAFAFA;
-        border: 2px dashed #E0E0E0;
-        border-radius: 16px;
-        padding: 30px 20px;
-        transition: all 0.3s;
-    }
-    [data-testid="stFileUploaderDropzone"]:hover {
-        border-color: #FF4B2B;
-        background-color: #FFF0F0;
-    }
-    /* ซ่อนข้อความเล็กๆ เดิมของ Streamlit แล้วใส่ข้อความใหม่ */
-    [data-testid="stFileUploaderDropzone"] div div::before {
-        content: "📂 คลิก หรือ ลากไฟล์รูปภาพมาวางที่นี่";
-        font-size: 1.1rem;
-        color: #555;
-        font-weight: 500;
-        display: block;
-        margin-bottom: 8px;
-    }
-    [data-testid="stFileUploaderDropzone"] div div small {
-        display: none;
-    }
-    
-    /* 6. ปุ่มกด (Button) */
-    div.stButton > button {
-        background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 12px 30px;
-        font-size: 1.2rem;
-        font-weight: 600;
-        width: 100%;
-        box-shadow: 0 10px 25px rgba(255, 75, 43, 0.3);
-        margin-top: 10px;
-        transition: all 0.3s;
-    }
-    div.stButton > button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(255, 75, 43, 0.5);
+        box-shadow: 0 10px 30px rgba(255, 75, 43, 0.15);
     }
     
     /* ซ่อน Header/Footer */
@@ -141,10 +153,10 @@ st.markdown("""
     
     /* จัดการการ์ดผลลัพธ์ */
     .result-card {
-        background-color: #F0FFF4;
-        border: 1px solid #C3E6CB;
+        background-color: #F0FDF4;
+        border: 1px solid #BBF7D0;
         border-radius: 16px;
-        padding: 20px;
+        padding: 25px;
         text-align: center;
         margin-bottom: 20px;
     }
@@ -193,7 +205,7 @@ with st.container(border=True): # สร้างกรอบขาว
     
     # ไอคอน + หัวข้อ
     st.markdown("""
-        <div class="icon-wrapper">
+        <div class="icon-container">
             <div class="main-icon">🌶️</div>
         </div>
         <div class="app-subtitle">AI Expert System</div>
@@ -240,23 +252,25 @@ if file is not None:
                 
                 # แสดงผลลัพธ์
                 st.markdown(f"""
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3 style="color: #555; margin: 0; font-size: 1.2rem;">ผลการวิเคราะห์</h3>
-                        <h1 style="color: #28a745; font-size: 3rem; margin: 10px 0; font-weight: 800;">{result_class}</h1>
-                        <p style="color: #888; font-size: 1.1rem;">ความมั่นใจ: <b>{confidence:.2f}%</b></p>
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <div style="color: #6B7280; font-size: 1rem; font-weight: 500; margin-bottom: 5px;">ผลการวิเคราะห์</div>
+                        <h1 style="color: #10B981; font-size: 2.8rem; margin: 0; font-weight: 800;">{result_class}</h1>
+                        <div style="color: #9CA3AF; font-size: 1rem; margin-top: 5px;">ความมั่นใจ: <b>{confidence:.2f}%</b></div>
                     </div>
                 """, unsafe_allow_html=True)
 
                 # คำแนะนำ (Card ย่อย)
                 treatment_text = ""
-                bg_color = "#fff3cd"
-                text_color = "#856404"
+                bg_color = "#FEF3C7"
+                text_color = "#92400E"
+                border_color = "#FDE68A"
                 icon = "⚠️"
 
                 if result_class == 'healthy':
                     treatment_text = "ต้นพริกแข็งแรงดี! ไม่พบร่องรอยโรค หมั่นดูแลรดน้ำและใส่ปุ๋ยตามปกติ"
-                    bg_color = "#d4edda"
-                    text_color = "#155724"
+                    bg_color = "#D1FAE5"
+                    text_color = "#065F46"
+                    border_color = "#A7F3D0"
                     icon = "🌿"
                 elif result_class == 'leaf curl':
                     treatment_text = "โรคใบหงิกมักเกิดจากแมลงหวี่ขาว ให้กำจัดวัชพืชและใช้สารสกัดสะเดา หรือเชื้อราเมตาไรเซียมฉีดพ่น"
@@ -268,7 +282,7 @@ if file is not None:
                      treatment_text = "อาการใบเหลือง อาจเกิดจากการขาดสารอาหาร หรือไวรัส ควรตรวจสอบดินและใส่ปุ๋ยบำรุง"
                 
                 st.markdown(f"""
-                    <div style="background-color: {bg_color}; color: {text_color}; padding: 25px; border-radius: 16px; text-align: left; font-size: 1.1rem; line-height: 1.6;">
+                    <div style="background-color: {bg_color}; color: {text_color}; border: 1px solid {border_color}; padding: 25px; border-radius: 16px; text-align: left; font-size: 1.1rem; line-height: 1.6;">
                         <strong style="display:block; margin-bottom:10px; font-size:1.2rem;">{icon} คำแนะนำ:</strong>
                         {treatment_text}
                     </div>
@@ -276,7 +290,7 @@ if file is not None:
 
 # Footer
 st.markdown("""
-    <div style="text-align: center; margin-top: 40px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+    <div style="text-align: center; margin-top: 40px; color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 300;">
         โครงงานวิจัยทางคอมพิวเตอร์ • มหาวิทยาลัยราชภัฏอุบลราชธานี<br>
         พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน
     </div>
