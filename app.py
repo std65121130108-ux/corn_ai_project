@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (White Card Theme - One Card Layout) ---
+# --- 2. 🎨 CSS ตกแต่ง (White Card Theme - Single Card) ---
 st.markdown("""
 <style>
     /* นำเข้าฟอนต์ Prompt */
