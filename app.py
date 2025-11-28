@@ -11,6 +11,156 @@ st.set_page_config(
     layout="centered"
 )
 
+# --- 2. 🎨 CSS ตกแต่ง (Glassmorphism & Gradient Theme) ---
+st.markdown("""
+<style>
+    /* นำเข้าฟอนต์ Prompt */
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    
+    /* บังคับฟอนต์ทั้งหน้า */
+    html, body, [class*="css"] {
+        font-family: 'Prompt', sans-serif;
+    }
+    
+    /* 1. พื้นหลังหลัก (Background): Gradient เหมือนใน HTML */
+    .stApp, [data-testid="stAppViewContainer"] {
+        background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
+        background-attachment: fixed !important;
+    }
+
+    /* 2. ปรับแต่ง "กรอบ/การ์ด" (Glass Card) */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(255, 255, 255, 0.95) !important; /* สีขาวโปร่งแสงนิดๆ */
+        backdrop-filter: blur(10px) !important;           /* เอฟเฟกต์เบลอหลังกระจก */
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-radius: 24px !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+        padding: 40px 30px !important;
+        margin-bottom: 20px;
+        
+        /* Animation ตอนเปิดเว็บ */
+        animation: fadeUp 0.8s ease-out;
+    }
+    
+    /* ป้องกันสีพื้นหลังซ้อนทับ */
+    [data-testid="stVerticalBlockBorderWrapper"] > div {
+        background-color: transparent !important;
+    }
+    
+    /* ซ่อน Header/Footer เดิม */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+
+    /* 3. ส่วนหัว (Icon & Titles) */
+    .card-header-custom {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .app-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        margin: 0 auto 20px;
+        box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
+        animation: pulse 2s infinite;
+        border: none;
+        cursor: default;
+    }
+    
+    .subtitle {
+        color: #d32f2f;
+        font-weight: 500;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+    
+    h1 {
+        color: #333 !important;
+        font-weight: 600 !important;
+        font-size: 1.8rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: center;
+    }
+    
+    /* 4. คำอธิบาย (Description) */
+    .description {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    /* 5. ปุ่มกด (Button) - Gradient เหมือนใน HTML */
+    div.stButton > button {
+        background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50px !important;
+        padding: 12px 40px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4) !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+    }
+    div.stButton > button:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6) !important;
+        color: white !important;
+    }
+    
+    /* 6. File Uploader */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #f9f9f9 !important;
+        border: 2px dashed #FF4B2B !important;
+        border-radius: 15px !important;
+    }
+    
+    /* 7. Footer */
+    .footer-credit {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 30px;
+        padding-top: 15px;
+        text-align: center;
+        border-top: 1px solid #eee;
+    }
+    .badge-custom {
+        background-color: #f8f9fa;
+        color: #212529;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        border-radius: 0.25rem;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    /* Animation Keyframes */
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 75, 43, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # --- 3. โหลดโมเดล ---
 @st.cache_resource
 def load_model():
@@ -46,10 +196,10 @@ def import_and_predict(image_data, model):
 
 model = load_model()
 
-# --- สร้างกรอบขาว (Card) ---
+# --- ⭐ สร้างกรอบสไตล์ Glass Card ⭐ ---
 with st.container(border=True):
     
-    # 1. ส่วนหัว
+    # 1. ส่วนหัว (Icon + Titles)
     st.markdown("""
         <div class="card-header-custom">
             <div class="app-icon">🌶️</div>
@@ -59,7 +209,8 @@ with st.container(border=True):
         
         <p class="description">
             ระบบผู้เชี่ยวชาญปัญญาประดิษฐ์สำหรับวินิจฉัยโรคพริกจากใบ <br>
-            ด้วยเทคโนโลยี <strong>Deep Learning (EfficientNetB4)</strong>
+            ด้วยเทคโนโลยี <strong>Deep Learning (EfficientNetB4)</strong> <br>
+            ความแม่นยำสูง รวดเร็ว และใช้งานง่าย
         </p>
     """, unsafe_allow_html=True)
 
@@ -69,7 +220,7 @@ with st.container(border=True):
     if file is None:
         st.markdown("""
             <div style="text-align: center; margin-top: 10px;">
-                <small style="color: #bbb;">รองรับไฟล์ JPG, PNG, JPEG</small>
+                <small style="color: #999;">*แนะนำให้เปิดผ่าน Google Chrome หรือ Safari</small>
             </div>
         """, unsafe_allow_html=True)
 
@@ -78,6 +229,7 @@ with st.container(border=True):
         image = Image.open(file)
         
         st.markdown("<br>", unsafe_allow_html=True)
+        # จัดรูปให้อยู่ตรงกลางสวยๆ
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.image(image, use_container_width=True)
@@ -93,23 +245,23 @@ with st.container(border=True):
                     result_class = class_names[class_index]
                     confidence = np.max(predictions) * 100
 
-                # เส้นคั่น
+                # เส้นคั่นภายในการ์ด
                 st.markdown("<hr style='margin: 30px 0; border-top: 1px solid #eee;'>", unsafe_allow_html=True)
                 
                 st.markdown(f"""
                     <div style="text-align: center;">
                         <h3 style="color: #333; margin-bottom: 5px;">ผลการวิเคราะห์</h3>
-                        <h1 style="color: #ff4b4b; font-size: 2.2rem; margin: 0;">{result_class}</h1>
+                        <h1 style="color: #FF4B2B; font-size: 2.2rem; margin: 0;">{result_class}</h1>
                         <p style="color: #777;">ความมั่นใจ: <b>{confidence:.2f}%</b></p>
                     </div>
                 """, unsafe_allow_html=True)
 
-                # --- คำแนะนำ ---
+                # --- จัดการ Icon และคำแนะนำตามโรค ---
                 treatment_text = ""
                 bg_color = "#fff3cd"
                 text_color = "#856404"
                 border_color = "#ffecb5"
-                icon = "⚠️"
+                icon = "⚠️" # ไอคอนเริ่มต้น
                 
                 if result_class == 'healthy':
                     treatment_text = "ต้นพริกแข็งแรงดี! ไม่พบร่องรอยโรค หมั่นดูแลรดน้ำและใส่ปุ๋ยตามปกติ"
@@ -142,14 +294,14 @@ with st.container(border=True):
                     </div>
                 """, unsafe_allow_html=True)
 
-# 4. Footer - อยู่นอกการ์ด
-st.markdown("""
-    <div class="footer-credit">
-        โครงงานวิจัยทางคอมพิวเตอร์ <br>
-        <strong>มหาวิทยาลัยราชภัฏอุบลราชธานี</strong> <br>
-        <span class="badge-custom">v.1.0 Final</span>
-        <div style="margin-top: 10px; font-size: 0.75rem; color: #aaa;">
-            พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน
+    # 4. Footer (Credit) - ย้ายเข้ามาไว้ใน Card ตาม HTML ต้นแบบ
+    st.markdown("""
+        <div class="footer-credit">
+            โครงงานวิจัยทางคอมพิวเตอร์ <br>
+            <strong>มหาวิทยาลัยราชภัฏอุบลราชธานี</strong> <br>
+            <span class="badge-custom">v.1.0 (Final Release)</span> <br>
+            <div style="margin-top: 10px; font-size: 0.75rem; color: #aaa;">
+                พัฒนาโดย: แมวสีขาวเทา และผองเพื่อน
+            </div>
         </div>
-    </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
