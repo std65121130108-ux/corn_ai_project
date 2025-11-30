@@ -184,7 +184,13 @@ local_css()
 # --- 3. โหลดโมเดล AI ---
 # ใช้ @st.experimental_singleton เพื่อ Cache โมเดลไว้ในแรม
 # ทำให้ไม่ต้องโหลดใหม่ทุกครั้งที่ผู้ใช้กดปุ่ม (ช่วยให้เว็บเร็วขึ้นมาก)
-@st.experimental_singleton
+# สร้าง Logic เช็คเวอร์ชัน (ถ้าใหม่ใช้ cache_resource ถ้าเก่าใช้ singleton)
+if hasattr(st, 'cache_resource'):
+    cache_decorator = st.cache_resource
+else:
+    cache_decorator = st.experimental_singleton
+
+@cache_decorator
 def load_model():
     filename = 'chilli_efficientnetb4_full.h5'
     
