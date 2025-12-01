@@ -1,475 +1,430 @@
-import streamlit as st          # ไลบรารีหลักสำหรับสร้าง Web App
-import tensorflow as tf         # ไลบรารี AI สำหรับรันโมเดล Deep Learning
-from PIL import Image, ImageOps # เครื่องมือจัดการรูปภาพ (ย่อ/ขยาย/ตัด)
-import numpy as np              # เครื่องมือคำนวณตัวเลขและอาเรย์ (Matrix)
-import time                     # เครื่องมือเกี่ยวกับเวลา (ใช้หน่วงเวลา/จับเวลา)
-import os                       # เครื่องมือจัดการไฟล์ในเครื่อง (เช็คว่ามีไฟล์ไหม)
+import streamlit as st                  
+import tensorflow as tf                 
+from PIL import Image, ImageOps         
+import numpy as np                      
+import time                             
+import os                               
+import mysql.connector                  
+import io                               
 
-# --- 1. ตั้งค่าหน้าเว็บ (Page Config) ---
-# บรรทัดนี้ต้องอยู่บนสุดเสมอ เป็นการบอก Browser ว่าเว็บเราชื่ออะไร ไอคอนอะไร
+# --- [ส่วนสำคัญ 1] สร้างไฟล์ Config บังคับ Light Mode ---
+config_dir = ".streamlit"
+config_path = os.path.join(config_dir, "config.toml")
+
+if not os.path.exists(config_dir):
+    os.makedirs(config_dir)
+
+with open(config_path, "w") as f:
+    f.write('[theme]\nbase="light"\nprimaryColor="#2E7D32"\nbackgroundColor="#FFFFFF"\nsecondaryBackgroundColor="#F0F2F6"\ntextColor="#333333"\n')
+
+# --- 1. ตั้งค่าหน้าเว็บ ---
 st.set_page_config(
-    page_title="Chili Doctor AI",
-    page_icon="🌶️",
-    layout="centered" # จัดหน้าเว็บให้อยู่กึ่งกลาง (เหมาะกับมือถือ)
+    page_title="Culantro Doctor AI",
+    page_icon="🌿",
+    layout="centered"
 )
 
-# --- 2. 🎨 CSS ตกแต่ง (Custom CSS) ---
-# ฟังก์ชันนี้จะ "ฉีด" โค้ด HTML/CSS เข้าไปเพื่อเปลี่ยนหน้าตาเว็บให้สวยงาม
+# --- 2. CSS ตกแต่ง ---
 def local_css():
     st.markdown("""
     <style>
-        /* นำเข้าฟอนต์ 'Prompt' จาก Google Fonts เพื่อให้ภาษาไทยสวยงาม */
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;800&display=swap');
         
-        /* 1. Global Settings: บังคับให้ทุกส่วนใช้ฟอนต์ Prompt */
-        html, body, [class*="css"] {
-            font-family: 'Prompt', sans-serif;
+        html, body, [class*="css"], [data-testid="stAppViewContainer"] {
+            font-family: 'Prompt', sans-serif !important;
+            color: #333333 !important;
+            font-weight: 400 !important;
         }
 
-        /* 2. พื้นหลัง Gradient: ไล่สีส้มแดงให้ดูร้อนแรงเหมือนพริก */
         .stApp {
-            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
             background-attachment: fixed !important;
             background-size: cover !important;
         }
 
-        /* 3. Block Container: คือการ์ดสีขาวตรงกลางหน้าจอ */
+        header[data-testid="stHeader"] { background-color: transparent !important; }
+        div[data-testid="stDecoration"] { display: none; }
+
+        ul[data-testid="main-menu-list"] {
+            background-color: #ffffff !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
+        }
+        ul[data-testid="main-menu-list"] * {
+            color: #333333 !important;
+            background-color: #ffffff !important;
+        }
+        button[kind="header"] { color: #ffffff !important; }
+
         div.block-container {
-            background-color: rgba(255, 255, 255, 0.95) !important; /* พื้นหลังสีขาวโปร่งแสงนิดๆ */
-            border-radius: 25px !important;    /* มุมโค้งมน */
-            padding: 3rem 2rem !important;     /* ระยะห่างขอบ */
-            margin-top: 2rem !important;       /* ดันลงมาจากด้านบน */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; /* เงาให้ดูลอยเด่น */
-            max-width: 700px !important;       /* กำหนดความกว้างสูงสุด */
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-radius: 30px !important;
+            padding: 2rem 2rem 4rem 2rem !important; 
+            margin-top: 2rem !important;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3) !important;
+            min-height: auto !important;
         }
 
-        /* บังคับให้ตัวหนังสือในกล่องขาวเป็นสีเข้ม (จะได้อ่านง่าย) */
-        div.block-container h1, div.block-container h2, div.block-container h3, 
-        div.block-container p, div.block-container span, div.block-container div, 
-        div.block-container label, div.block-container small {
-             color: #333333 !important;
-        }
-        
-        /* ยกเว้น Text ในปุ่มกด ให้เป็นสีขาวเหมือนเดิม */
-        div.stButton > button p { color: white !important; }
-
-        /* ซ่อน Header/Footer ดั้งเดิมของ Streamlit (ขีด 3 ขีดขวาบน และเครดิตล่างสุด) */
-        #MainMenu {visibility: hidden;}
-        header {visibility: hidden;}
-        footer {visibility: hidden;}
-
-        /* 4. Custom Elements: ตกแต่งโลโก้แอป */
-        .app-icon {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%) !important;
-            border-radius: 50%;   /* ทำเป็นวงกลม */
+        .app-header-icon {
+            font-size: 80px !important;
+            background: radial-gradient(circle, #d4fc79 0%, #96e6a1 100%) !important;
+            width: 140px !important;
+            height: 140px !important;
+            border-radius: 50% !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 50px;
-            margin: 0 auto 20px;  /* จัดกึ่งกลาง */
-            box-shadow: 0 6px 20px rgba(255, 75, 43, 0.4) !important;
-            cursor: default;
-        }
-        
-        /* ตกแต่งหัวข้อย่อย */
-        .subtitle {
-            color: #d32f2f !important;
-            font-weight: 600 !important;
-            font-size: 0.9rem !important;
-            letter-spacing: 2px !important;
-            text-transform: uppercase !important;
-            text-align: center !important;
-            margin-bottom: 5px !important;
-        }
-        
-        /* ตกแต่งหัวข้อใหญ่ (H1) */
-        h1 {
-            font-weight: 800 !important;
-            font-size: 2.2rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            text-align: center !important;
+            margin: 0 auto 15px auto !important;
+            box-shadow: 0 10px 25px rgba(0, 128, 0, 0.3) !important;
+            border: 5px solid #ffffff !important;
         }
 
-        /* ตกแต่งคำอธิบายแอป */
-        .description {
-            font-size: 1rem !important;
-            line-height: 1.6 !important;
-            text-align: center !important;
-            margin: 20px 0 30px 0 !important;
+        div[role="radiogroup"] {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 10px !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
         }
-
-        /* 5. ปุ่มกด (Button Styling) */
-        div.stButton > button {
-            background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%) !important;
+        div[role="radiogroup"] label {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
             border: none !important;
-            color: white !important;
-            padding: 15px 40px !important;
-            border-radius: 50px !important; /* ปุ่มทรงแคปซูล */
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4) !important;
-            width: 100% !important;
-            transition: all 0.3s ease !important;
+            padding: 10px 20px !important;
+            border-radius: 25px !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
+            margin: 0 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+            color: #ffffff !important; 
         }
-        /* เอฟเฟกต์ตอนเอาเมาส์ชี้ปุ่ม */
-        div.stButton > button:hover {
-            transform: scale(1.02) !important; /* ขยายใหญ่นิดนึง */
-            box-shadow: 0 8px 25px rgba(255, 65, 108, 0.5) !important;
+        div[role="radiogroup"] label p {
+            color: #ffffff !important;
+            font-weight: 400 !important;
+            font-size: 1rem !important;
+        }
+        div[role="radiogroup"] label:hover {
+            filter: brightness(1.1) !important;
+            transform: translateY(-2px) !important;
+        }
+        .stRadio > label {
+            color: #117a2d !important;
+            font-weight: 800 !important;
+            font-size: 1.3rem !important;
+            margin-bottom: 15px !important;
+            display: block;
+            text-align: center;
         }
 
-        /* 6. พื้นที่อัปโหลดไฟล์ (Dropzone) */
-        [data-testid="stFileUploaderDropzone"] {
-            background-color: rgba(240, 240, 240, 0.5) !important;
-            border: 2px dashed #FF4B2B !important; /* เส้นประสีส้ม */
+        /* ปุ่มกดปกติของ Streamlit */
+        div.stButton > button {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
             border-radius: 15px !important;
-            padding: 20px !important;
+            font-weight: 400 !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            padding: 0.8rem !important;
+            font-size: 1rem !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
         }
-        /* ปุ่ม Browse files */
-        [data-testid="stFileUploaderDropzone"] button {
+        div.stButton > button:hover {
+            filter: brightness(1.1) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3) !important;
+            color: #ffffff !important;
+        }
+        div[data-testid="column"] button {
+             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+             color: #ffffff !important;
              border: none !important;
-             background: #FF4B2B !important;
-             color: white !important;
         }
 
-        /* 7. Tabs Styling (แท็บเลือกถ่ายรูป/อัปโหลด) */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 10px;
-            background-color: transparent;
-            margin-bottom: 20px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            height: 45px;
-            background-color: #f0f0f0;
+        div[data-testid="stImage"] > img {
             border-radius: 20px;
-            padding: 0px 20px;
-            color: #666;
-            font-weight: 600;
+            max-height: 350px;
+            width: auto;
+            max-width: 100%;
+            margin: 0 auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .footer-credit {
+            font-size: 0.8rem; color: #888; text-align: center; margin-top: 10px;
+        }
+        
+        h1 { 
+            text-align: center; color: #2E7D32 !important; 
+            font-weight: 800 !important; font-size: 2.2rem !important;
+            margin-bottom: 5px !important; text-shadow: 2px 2px 0px #e8f5e9;
+        }
+
+        /* --- [CSS สำหรับปุ่มลิงก์ HTML ที่สร้างเอง] --- */
+        .custom-home-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 0.8rem 2rem;
+            border-radius: 15px;
+            font-weight: 400;
+            font-family: 'Prompt', sans-serif;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
             border: none;
         }
-        /* สีตอนเลือกแท็บนั้นอยู่ */
-        .stTabs [aria-selected="true"] {
-            background-color: #ffe5e5 !important;
-            color: #FF4B2B !important;
-            border: 1px solid #FF4B2B !important;
-        }
-
-        /* 8. Footer (ส่วนเครดิตด้านล่าง) */
-        .footer-credit {
-            font-size: 0.8rem !important;
-            color: #888 !important;
-            margin-top: 30px !important;
-            padding-top: 20px !important;
-            text-align: center !important;
-            border-top: 1px solid rgba(0,0,0,0.1) !important;
-        }
-        .badge-custom {
-            background-color: #f0f0f0 !important;
-            color: #333 !important;
-            padding: 0.35em 0.8em !important;
-            font-size: 0.75em !important;
-            font-weight: 700 !important;
-            border-radius: 20px !important;
-            display: inline-block !important;
-            margin-top: 10px !important;
+        .custom-home-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            color: #ffffff !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
-# เรียกใช้ฟังก์ชัน CSS ทันทีที่รัน
 local_css()
 
-# --- 3. โหลดโมเดล AI ---
-# ใช้ @st.experimental_singleton เพื่อ Cache โมเดลไว้ในแรม
-# ทำให้ไม่ต้องโหลดใหม่ทุกครั้งที่ผู้ใช้กดปุ่ม (ช่วยให้เว็บเร็วขึ้นมาก)
-# สร้าง Logic เช็คเวอร์ชัน (ถ้าใหม่ใช้ cache_resource ถ้าเก่าใช้ singleton)
-if hasattr(st, 'cache_resource'):
-    cache_decorator = st.cache_resource
-else:
-    cache_decorator = st.experimental_singleton
+# --- 3. ฟังก์ชัน Database ---
+def init_connection():
+    return mysql.connector.connect(
+        host="www.cedubru.com",     
+        user="cedubruc_culantro_db",        
+        password="PGqGdtYLPv2vJzag8DrK",
+        database="cedubruc_culantro_db"
+    )
+
+def get_image_list(filter_mode):
+    try:
+        conn = init_connection()
+        cursor = conn.cursor()
+        if "ยังไม่ตรวจ" in filter_mode:
+            sql = "SELECT id, image_name, prediction_result FROM culantro_images WHERE prediction_result IS NULL ORDER BY id ASC"
+        elif "ตรวจแล้ว" in filter_mode:
+            sql = "SELECT id, image_name, prediction_result FROM culantro_images WHERE prediction_result IS NOT NULL ORDER BY id DESC"
+        else:
+            sql = "SELECT id, image_name, prediction_result FROM culantro_images ORDER BY id DESC"
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        conn.close()
+        return data
+    except Exception as e:
+        st.error(f"❌ DB Error: {e}")
+        return []
+
+def get_image_data(img_id):
+    try:
+        conn = init_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT image_data, prediction_result, confidence FROM culantro_images WHERE id = %s", (img_id,))
+        data = cursor.fetchone()
+        conn.close()
+        return data 
+    except: return None
+
+def update_database(img_id, result, confidence):
+    try:
+        conn = init_connection()
+        cursor = conn.cursor()
+        sql = "UPDATE culantro_images SET prediction_result = %s, confidence = %s WHERE id = %s"
+        cursor.execute(sql, (result, float(confidence), img_id))
+        conn.commit()
+        conn.close()
+        return True
+    except: return False
+
+# --- 4. Load Model ---
+if hasattr(st, 'cache_resource'): cache_decorator = st.cache_resource
+else: cache_decorator = st.experimental_singleton
 
 @cache_decorator
 def load_model():
-    filename = 'chilli_efficientnetb4_full.h5'
-    
-    # เช็คว่ามีไฟล์โมเดลในเครื่องหรือยัง ถ้าไม่มีให้โหลดจาก Google Drive
+    filename = 'efficientnetb4_culantro_model.h5'
     if not os.path.exists(filename):
-        # ID ของไฟล์ Google Drive (ต้องเป็น Public Link)
-        file_id = '1QJIaS61jMxx4vZ8uIVVz_IuGI6XAchLT' 
-        url = f'https://drive.google.com/uc?id={file_id}'
-        
-        # สร้างพื้นที่ว่างไว้แสดงสถานะการดาวน์โหลด
-        download_placeholder = st.empty()
-        
-        with download_placeholder.container():
-            st.warning("""
-                ⚠️ **กำลังดาวน์โหลดโมเดล AI (ครั้งแรกเท่านั้น)...**
-                
-                ไฟล์มีขนาดใหญ่ กรุณารอสักครู่ ระบบกำลังเตรียมความพร้อม...
-            """)
-            # แสดงวงกลมหมุนๆ ระหว่างโหลด
-            with st.spinner("🚀 กำลังดึงข้อมูลจาก Server... (ห้ามปิดหน้านี้)"):
-                try:
-                    # ใช้ gdown เพื่อโหลดไฟล์จาก Drive
-                    import gdown
-                    gdown.download(url, filename, quiet=False)
-                    
-                    if os.path.exists(filename):
-                        # โหลดเสร็จ แจ้งเตือนสีเขียว
-                        download_placeholder.success("✅ ดาวน์โหลดเสร็จสิ้น! พร้อมใช้งาน")
-                        time.sleep(2) # โชว์ค้างไว้ 2 วิ
-                        download_placeholder.empty() # ลบข้อความทิ้ง
-                    else:
-                        download_placeholder.error("❌ ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่")
-                        return None
-                except Exception as e:
-                    download_placeholder.error(f"❌ เกิดข้อผิดพลาด: {e}")
-                    return None
-                    
-    # คำสั่งหลัก: โหลดโมเดลเข้าสู่ TensorFlow
+        return None
     try:
         return tf.keras.models.load_model(filename)
     except:
         return None
 
-# --- ฟังก์ชันทำนายผล (Prediction Function) ---
-# รับรูปภาพเข้ามา -> แปลงเป็นตัวเลข -> ส่งให้ AI ทำนาย
 def import_and_predict(image_data, model):
-    size = (380, 380) # ขนาดที่ EfficientNetB4 ต้องการ
-    
-    # ปรับขนาดภาพ (Resize) และใช้ Filter คุณภาพสูง (LANCZOS)
+    size = (380, 380)
     try:
         image = ImageOps.fit(image_data, size, Image.Resampling.LANCZOS)
     except AttributeError:
-        # เผื่อกรณีเซิร์ฟเวอร์ใช้ Pillow เวอร์ชันเก่า
         image = ImageOps.fit(image_data, size, Image.ANTIALIAS)
-        
-    # แปลงรูปเป็นอาเรย์ตัวเลข (Numpy Array)
     img_array = np.asarray(image).astype(np.float32)
-    
-    # เพิ่มมิติข้อมูลจาก (380,380,3) เป็น (1,380,380,3) เพราะ AI รับข้อมูลเป็น Batch
     data = np.ndarray(shape=(1, 380, 380, 3), dtype=np.float32)
     data[0] = img_array
-    
-    # สั่งให้โมเดลทำนาย
     return model.predict(data)
 
-# --- 4. ส่วนแสดงผลหลัก (Main UI) ---
-
-# เรียกใช้ฟังก์ชันโหลดโมเดล
+# --- 5. Main UI ---
 model = load_model()
 
-# ⭐ Session State: ระบบความจำของ Streamlit ⭐
-# ใช้จำค่าต่างๆ ข้ามการรีโหลดหน้าเว็บ
-
-# 1. ตัวนับการรีเซ็ต (ใช้เปลี่ยน Key ของ widget เพื่อบังคับล้างค่า)
-if 'reset_count' not in st.session_state:
-    st.session_state['reset_count'] = 0
-
-# 2. ตัวจำภาพถ่าย (ถ้ามีภาพอยู่ จะซ่อนกล้องแล้วโชว์ภาพแทน)
-if 'cam_img_buffer' not in st.session_state:
-    st.session_state['cam_img_buffer'] = None
-
-# --- ส่วนหัว (Header HTML) ---
 st.markdown("""
-    <div style="text-align: center;">
-        <div class="app-icon">🌶️</div>
-        <div class="subtitle">AI Expert System</div>
-        <h1>Chili Doctor AI</h1>
-        <p class="description">
-            ระบบผู้เชี่ยวชาญปัญญาประดิษฐ์สำหรับวินิจฉัยโรคพริกจากใบ <br>
-            ด้วยเทคโนโลยี <strong>Deep Learning (EfficientNetB4)</strong> <br>
-            ความแม่นยำสูง รวดเร็ว และใช้งานง่าย
-        </p>
+    <div class='app-header-icon'>🌿</div>
+    <h1>Culantro Doctor AI</h1>
+    <p style='text-align: center; color: #555; margin-bottom: 30px; font-size: 1.1rem;'>
+        ระบบวินิจฉัยโรคผักชีฝรั่งอัจฉริยะด้วย AI
+    </p>
+""", unsafe_allow_html=True)
+
+# --- ตัวกรอง ---
+c1, c2, c3 = st.columns([0.1, 3, 0.1])
+with c2:
+    filter_option = st.radio(
+        "📂 ตัวกรองข้อมูล:", 
+        ["ทั้งหมด (All)", "ตรวจแล้ว (Analyzed)", "ยังไม่ตรวจ (Pending)"], 
+    )
+
+# ดึงข้อมูลตามตัวกรอง
+image_list = get_image_list(filter_option)
+
+if len(image_list) > 0:
+    id_list = [row[0] for row in image_list]
+    
+    if 'current_index' not in st.session_state:
+        st.session_state.current_index = 0
+    if st.session_state.current_index >= len(id_list):
+        st.session_state.current_index = 0
+
+    current_id = id_list[st.session_state.current_index]
+    
+    # --- แสดงผล ---
+    st.markdown("---")
+    st.markdown(f"<div style='text-align: center; color: #333; margin-bottom: 15px; font-weight: normal; font-size: 1.1rem; background: #e8f5e9; padding: 10px; border-radius: 10px;'>📸 รูปที่ {st.session_state.current_index + 1} / {len(id_list)} (ID: {current_id})</div>", unsafe_allow_html=True)
+
+    data_row = get_image_data(current_id)
+    
+    if data_row:
+        blob_data, saved_result, saved_conf = data_row
+        image = Image.open(io.BytesIO(blob_data))
+        
+        col_img, col_act = st.columns([1, 1])
+        
+        with col_img:
+            st.image(image, use_column_width=True)
+        
+        with col_act:
+            st.markdown("### ผลการวิเคราะห์")
+            
+            if saved_result:
+                bg = "#d4edda" if 'Healthy' in saved_result or 'ปกติ' in saved_result else "#f8d7da"
+                text_col = "#155724" if 'Healthy' in saved_result or 'ปกติ' in saved_result else "#721c24"
+                
+                st.markdown(f"""
+                    <div style="background-color: {bg}; padding: 20px; border-radius: 15px; border: 2px solid {text_col}; margin-bottom: 20px; text-align: center;">
+                        <h2 style="color: {text_col} !important; margin: 0; font-size: 1.6rem; font-weight: 400;">{saved_result}</h2>
+                        <p style="margin-top: 10px; font-size: 1rem; color: #333;">ความมั่นใจ: <strong>{saved_conf:.2f}%</strong></p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("🔄 วินิจฉัยซ้ำ"):
+                    update_database(current_id, None, 0)
+                    st.experimental_rerun()
+            
+            else:
+                st.info("⚠️ รูปนี้ยังไม่ได้รับการตรวจสอบ")
+                # ปุ่มวิเคราะห์เดี่ยว
+                if st.button("🚀 วินิจฉัยรูปนี้"):
+                    if model:
+                        with st.spinner("AI กำลังทำงาน..."):
+                            preds = import_and_predict(image, model)
+                            class_names = ['Healthy', 'Leaf_Blight', 'Soft_Rot']
+                            idx = np.argmax(preds)
+                            res_eng = class_names[idx]
+                            conf = np.max(preds) * 100
+                            
+                            th_dict = {
+                                'Healthy': 'ปกติ (แข็งแรง)',
+                                'Leaf_Blight': 'โรคใบไหม้ (Leaf Blight)',
+                                'Soft_Rot': 'โรคเน่าเละ (Soft Rot)'
+                            }
+                            final_res = th_dict.get(res_eng, res_eng)
+                            
+                            update_database(current_id, final_res, conf)
+                            st.success("บันทึกเรียบร้อย!")
+                            time.sleep(0.5)
+                            st.experimental_rerun()
+                    else:
+                        st.error("โมเดลยังไม่โหลด")
+                
+                # --- [ปุ่ม Batch อยู่ด้านล่าง] ---
+                if "ยังไม่ตรวจ" in filter_option:
+                    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                    if st.button(f"⚡ วิเคราะห์ทั้งหมดที่เหลือ ({len(image_list)} รูป)"):
+                        if model:
+                            progress_bar = st.progress(0)
+                            status_text = st.empty()
+                            for i, (img_id, img_name, _) in enumerate(image_list):
+                                status_text.text(f"⏳ กำลังวิเคราะห์... {i+1}/{len(image_list)}")
+                                data_row = get_image_data(img_id)
+                                if data_row:
+                                    blob_data = data_row[0]
+                                    image = Image.open(io.BytesIO(blob_data))
+                                    preds = import_and_predict(image, model)
+                                    class_names = ['Healthy', 'Leaf_Blight', 'Soft_Rot']
+                                    idx = np.argmax(preds)
+                                    res_eng = class_names[idx]
+                                    conf = np.max(preds) * 100
+                                    
+                                    th_dict = {
+                                        'Healthy': 'ปกติ (แข็งแรง)',
+                                        'Leaf_Blight': 'โรคใบไหม้ (Leaf Blight)',
+                                        'Soft_Rot': 'โรคเน่าเละ (Soft Rot)'
+                                    }
+                                    final_res = th_dict.get(res_eng, res_eng)
+                                    update_database(img_id, final_res, conf)
+                                progress_bar.progress((i + 1) / len(image_list))
+                            
+                            status_text.text("✅ เสร็จสิ้น!")
+                            st.success("บันทึกข้อมูลเรียบร้อยแล้ว")
+                            time.sleep(1)
+                            st.experimental_rerun()
+
+    # --- ปุ่มนำทาง (แก้ให้วนลูป) ---
+    st.markdown("<br>", unsafe_allow_html=True) 
+    c_prev, c_empty, c_next = st.columns([1, 0.2, 1]) 
+    
+    with c_prev:
+        is_first_image = st.session_state.current_index == 0
+        if is_first_image:
+            if st.button("⏮️ ไปรูปสุดท้าย"):
+                st.session_state.current_index = len(id_list) - 1
+                st.experimental_rerun()
+        else:
+            if st.button("◀️ ย้อนกลับ"):
+                st.session_state.current_index -= 1
+                st.experimental_rerun()
+            
+    with c_next:
+        is_last_image = st.session_state.current_index >= len(id_list) - 1
+        if is_last_image:
+            if st.button("🔄 เริ่มต้นใหม่"):
+                st.session_state.current_index = 0
+                st.experimental_rerun()
+        else:
+            if st.button("ถัดไป ▶️"):
+                st.session_state.current_index += 1
+                st.experimental_rerun()
+
+else:
+    st.warning("ไม่พบข้อมูลในฐานข้อมูลตามตัวกรองที่เลือก")
+
+# --- [ส่วนปุ่มลิงก์ HTML ที่เพิ่มใหม่] ---
+# ⚠️ เปลี่ยนลิงก์ด้านล่างให้เป็นเว็บที่คุณต้องการ ⚠️
+st.markdown("""
+    <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+        <a href="https://www.cedubru.com" target="_self" class="custom-home-btn">
+            🏠 คลิกเพื่อกลับสู่หน้าหลัก
+        </a>
     </div>
 """, unsafe_allow_html=True)
 
-# สร้างแท็บ 2 อัน: ถ่ายรูป / อัปโหลด
-tab_cam, tab_up = st.tabs(["📸 ถ่ายภาพใบพริก", "📂 อัปโหลดไฟล์รูป"])
-
-img_file_buffer = None
-# สร้าง Key ให้ไม่ซ้ำกันตามจำนวนครั้งที่รีเซ็ต
-camera_key = f"camera_{st.session_state['reset_count']}"
-uploader_key = f"uploader_{st.session_state['reset_count']}"
-
-# --- Logic Tab 1: กล้องถ่ายรูป ---
-with tab_cam:
-    # ถ้ายังไม่มีภาพในความจำ -> แสดงกล้องให้ถ่าย
-    if st.session_state['cam_img_buffer'] is None:
-        camera_image = st.camera_input("กล้องถ่ายรูป", key=camera_key)
-        
-        # แสดงป้ายแนะนำวิธีกดถ่าย
-        st.markdown("""
-            <div style="text-align: center; margin-top: 20px;">
-                <div style="display: inline-block; background: linear-gradient(90deg, #FF416C 0%, #FF4B2B 100%); padding: 15px 30px; border-radius: 50px; box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);">
-                    <h4 style="color: #ffffff !important; margin: 0 !important; font-size: 1.1rem;">
-                        📸 กดปุ่ม "Take Photo" ด้านบนเพื่อถ่ายรูป
-                    </h4>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        if camera_image is not None:
-            # ถ้าผู้ใช้กดถ่ายรูป -> จำภาพลง Session State -> สั่งรีโหลดหน้าเว็บ (Rerun)
-            st.session_state['cam_img_buffer'] = camera_image
-            st.experimental_rerun()
-            
-    else:
-        # ถ้ามีภาพในความจำแล้ว -> เอาภาพนั้นมาใช้เลย (ไม่ต้องโชว์กล้องซ้ำ)
-        img_file_buffer = st.session_state['cam_img_buffer']
-        st.success("✅ บันทึกภาพเรียบร้อยแล้ว (กดปุ่ม 'ถ่ายรูปใหม่อีกครั้ง' หากต้องการถ่ายรูปภาพใหม่)")
-
-# --- Logic Tab 2: อัปโหลดไฟล์ ---
-with tab_up:
-    uploaded_file = st.file_uploader("เลือกรูปภาพจากเครื่อง", type=["jpg", "png", "jpeg"], key=uploader_key)
-    if uploaded_file is not None:
-        img_file_buffer = uploaded_file
-
-# --- 5. แสดงผลรูปและปุ่มกด (Display & Actions) ---
-if img_file_buffer is not None:
-    # เปิดรูปด้วย PIL
-    image = Image.open(img_file_buffer)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # จัด layout 3 คอลัมน์ เพื่อให้รูปอยู่ตรงกลางสวยๆ
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # ใส่กรอบให้รูปภาพ
-        st.markdown('<div style="border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 3px solid rgba(255,255,255,0.8);">', unsafe_allow_html=True)
-        st.image(image, use_column_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # สร้างปุ่ม 2 ปุ่มเรียงกัน
-    b1, b2 = st.columns(2, gap="medium")
-    
-    with b1:
-        predict_click = st.button("🚀 วินิจฉัยโรคทันที")
-        
-    with b2:
-        reset_click = st.button("🔄 ถ่ายรูปใหม่อีกครั้ง")
-
-    # --- Logic ปุ่ม Reset ---
-    if reset_click:
-        st.session_state['reset_count'] += 1 # เพิ่มตัวนับเพื่อให้ Key เปลี่ยน (เป็นการบังคับล้างค่า)
-        st.session_state['cam_img_buffer'] = None # ลบภาพในความจำ
-        st.experimental_rerun() # รีโหลดหน้าเว็บใหม่
-
-    # --- Logic ปุ่ม Predict (หัวใจสำคัญ) ---
-    if predict_click:
-        if model is None:
-            st.error("❌ ไม่สามารถโหลดโมเดลได้")
-        else:
-            # หมุน Spinner รอระหว่างคำนวณ
-            with st.spinner('AI กำลังประมวลผล...'):
-                # ส่งรูปไปให้ AI ทำนาย
-                predictions = import_and_predict(image, model)
-                
-                # รายชื่อโรค (ต้องเรียงตามลำดับเดียวกับตอนเทรนเป๊ะๆ)
-                class_names = [
-                    'Bacterial Spot', 
-                    'Cercospora Leaf Spot', 
-                    'Curl Virus', 
-                    'Healthy Leaf', 
-                    'Not leaf chilli', 
-                    'Nutrition Deficiency', 
-                    'White spot'
-                ]
-                
-                # หาค่าที่มากที่สุด (argmax) ว่าตรงกับโรคไหน
-                class_index = np.argmax(predictions)
-                result_class = class_names[class_index]
-                confidence = np.max(predictions) * 100 # แปลงเป็นเปอร์เซ็นต์
-
-            # ขีดเส้นคั่น
-            st.markdown("<div style='height: 1px; background-color: rgba(0,0,0,0.1); margin: 30px 0;'></div>", unsafe_allow_html=True)
-            
-            # แปลงชื่อภาษาอังกฤษ เป็นชื่อภาษาไทยสำหรับแสดงผล
-            display_name = result_class
-            if result_class == 'Bacterial Spot': display_name = "โรคจุดแบคทีเรีย (Bacterial Spot)"
-            elif result_class == 'Cercospora Leaf Spot': display_name = "โรคใบจุดตากบ (Cercospora)"
-            elif result_class == 'Curl Virus': display_name = "โรคใบหงิกไวรัส (Curl Virus)"
-            elif result_class == 'Healthy Leaf': display_name = "ต้นพริกแข็งแรง (Healthy)"
-            elif result_class == 'Not leaf chilli': display_name = "⚠️ ไม่ใช่รูปใบพริก"
-            elif result_class == 'Nutrition Deficiency': display_name = "อาการขาดสารอาหาร (Deficiency)"
-            elif result_class == 'White spot': display_name = "โรคจุดขาว (White Spot)"
-
-            # แสดงผลลัพธ์ตัวใหญ่ๆ
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <h3 style="color: #666; font-size: 1rem; margin-bottom: 5px;">ผลการวิเคราะห์</h3>
-                    <h1 style="color: #FF4B2B !important; font-size: 2.2rem; margin: 0;">{display_name}</h1>
-                    <div style="background: #fff0f0; color: #FF4B2B; display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-top: 10px;">
-                        ความมั่นใจ: {confidence:.2f}%
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            # เตรียมข้อความคำแนะนำ และไอคอน ตามโรคที่เจอ
-            treatment_text = ""
-            bg_color = "rgba(255, 248, 225, 0.8)"
-            icon_bg = "#ffecb3"
-            icon = "⚠️"
-            
-            if result_class == 'Healthy Leaf':
-                treatment_text = "ยอดเยี่ยม! ต้นพริกของคุณแข็งแรงดี ไม่พบร่องรอยโรค หมั่นรดน้ำและใส่ปุ๋ยตามปกติเพื่อรักษาผลผลิต"
-                bg_color = "rgba(232, 245, 233, 0.8)" # สีเขียวอ่อน
-                icon_bg = "#c8e6c9"
-                icon = "🌿"
-                
-            elif result_class == 'Bacterial Spot':
-                treatment_text = "โรคจุดแบคทีเรีย: ระบาดได้ดีในหน้าฝน ให้เก็บใบที่เป็นโรคไปเผาทำลาย และฉีดพ่นสารประกอบทองแดง (Copper) หรือใช้เชื้อแบคทีเรียบาซิลลัส (BS) ในการควบคุม"
-                icon = "🟤"
-                
-            elif result_class == 'Cercospora Leaf Spot':
-                treatment_text = "โรคใบจุดตากบ (เชื้อรา): มักเกิดจุดกลมสีน้ำตาล ให้ตัดแต่งใบที่ระบาดออก เพื่อให้อากาศถ่ายเท และฉีดพ่นสารป้องกันกำจัดเชื้อรากลุ่มแมนโคเซบ หรือคาร์เบนดาซิม"
-                icon = "🍂"
-                
-            elif result_class == 'Curl Virus':
-                treatment_text = "โรคใบหงิก (ไวรัส): เกิดจากแมลงพาหะ เช่น เพลี้ยไฟ/แมลงหวี่ขาว หากเป็นรุนแรงควรถอนทิ้งทันทีเพื่อป้องกันการลาม ป้องกันโดยการกำจัดแมลงพาหะอย่างสม่ำเสมอ"
-                icon = "🌀"
-                
-            elif result_class == 'Nutrition Deficiency':
-                treatment_text = "อาการขาดสารอาหาร: ใบอาจมีสีเหลืองซีด หรือเส้นใบเขียวแต่เนื้อใบเหลือง ควรปรับปรุงดิน ตรวจวัดค่า pH และเติมปุ๋ยธาตุอาหารรอง/เสริม (เช่น แมกนีเซียม, เหล็ก, แคลเซียม)"
-                icon = "🟡"
-            
-            elif result_class == 'White spot':
-                treatment_text = "โรคจุดขาว: อาจเกิดจากเชื้อรา Alternaria หรือ Ramularia ให้หมั่นดูแลแปลงให้สะอาด ระบายอากาศให้ดี และใช้สารชีวภัณฑ์ไตรโคเดอร์มา หรือสารเคมีกลุ่ม azoxystrobin หากระบาดหนัก"
-                icon = "⚪"
-
-            elif result_class == 'Not leaf chilli':
-                treatment_text = "ระบบตรวจจับว่าภาพนี้ **ไม่ใช่ใบพริก** หรือภาพไม่ชัดเจน กรุณาถ่ายภาพใบพริกใหม่อีกครั้ง เพื่อการวิเคราะห์ที่แม่นยำ"
-                bg_color = "rgba(255, 235, 238, 0.8)" # สีแดงอ่อน
-                icon_bg = "#ffcdd2"
-                icon = "❌"
-            
-            # แสดงกล่องคำแนะนำ (HTML Box)
-            st.markdown(f"""
-                <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 25px; text-align: left; border: 1px solid rgba(0,0,0,0.05);">
-                    <div style="display: flex; align-items: start;">
-                        <div style="background: {icon_bg}; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-right: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-shrink: 0;">
-                            {icon}
-                        </div>
-                        <div>
-                            <strong style="display: block; margin-bottom: 5px; color: #333; font-size: 1rem;">คำแนะนำการดูแลรักษา</strong>
-                            <span style="color: #555; line-height: 1.5; font-size: 0.9rem;">{treatment_text}</span>
-                        </div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
-# 6. Footer (เครดิตผู้จัดทำ)
 st.markdown("""
     <div class="footer-credit">
-        <strong>วิจัยทางคอมพิวเตอร์  โดยสาขาวิชาคอมพิวเตอร์ศึกษา</strong> <br>
-        <strong>คณะครุศาสตร์  มหาวิทยาลัยราชภัฏอุบลราชธานี</strong> <br>
-        <span class="badge-custom">V.1.0 (Final Release)</span> <br>
-        <div style="margin-top: 10px; font-size: 0.75rem; color: #aaa;">
-            <strong>พัฒนาโดย: แมวใส่ชุดกบ และผองเพื่อน</strong>
-        </div>
+        <strong>ระบบวินิจฉัยโรคผักชีฝรั่ง V.1.0</strong>
     </div>
 """, unsafe_allow_html=True)
