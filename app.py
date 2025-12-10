@@ -453,7 +453,7 @@ else:
 
 # --- [ส่วนปุ่มลิงก์ HTML ที่เพิ่มใหม่] ---
 # ⚠️ เปลี่ยนลิงก์ให้เป็น Path ของเว็บตรวจโรคข้าวโพดของคุณ ⚠️
-base_url = "http://www.cedubru.com/ตรวจโรคข้าวโพด/"
+base_url = "http://www.cedubru.com/"
 path = "ตรวจโรคใบข้าวโพด/" # แก้ Path ให้ตรงกับโฟลเดอร์จริง
 full_url = base_url + urllib.parse.quote(path)
 
