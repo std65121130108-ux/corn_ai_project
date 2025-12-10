@@ -1,11 +1,11 @@
-import streamlit as st                  
-import tensorflow as tf                 
-from PIL import Image, ImageOps         
-import numpy as np                      
-import time                             
-import os                               
-import mysql.connector                  
-import io                               
+import streamlit as st
+import tensorflow as tf
+from PIL import Image, ImageOps
+import numpy as np
+import time
+import os
+import mysql.connector
+import io
 import gdown
 import urllib.parse
 
@@ -17,16 +17,16 @@ if not os.path.exists(config_dir):
     os.makedirs(config_dir)
 
 with open(config_path, "w") as f:
-    f.write('[theme]\nbase="light"\nprimaryColor="#2E7D32"\nbackgroundColor="#FFFFFF"\nsecondaryBackgroundColor="#F0F2F6"\ntextColor="#333333"\n')
+    f.write('[theme]\nbase="light"\nprimaryColor="#F9A825"\nbackgroundColor="#FFFFFF"\nsecondaryBackgroundColor="#FFF8E1"\ntextColor="#333333"\n')
 
 # --- 1. ตั้งค่าหน้าเว็บ ---
 st.set_page_config(
-    page_title="Culantro Doctor AI",
-    page_icon="🌿",
+    page_title="Corn Doctor AI",
+    page_icon="🌽",
     layout="centered"
 )
 
-# --- 2. CSS ตกแต่ง ---
+# --- 2. CSS ตกแต่ง (ปรับธีมเป็น เหลือง-เขียว ข้าวโพด) ---
 def local_css():
     st.markdown("""
     <style>
@@ -39,7 +39,7 @@ def local_css():
         }
 
         .stApp {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%) !important;
             background-attachment: fixed !important;
             background-size: cover !important;
         }
@@ -69,7 +69,7 @@ def local_css():
 
         .app-header-icon {
             font-size: 80px !important;
-            background: radial-gradient(circle, #d4fc79 0%, #96e6a1 100%) !important;
+            background: radial-gradient(circle, #fff176 0%, #fbc02d 100%) !important;
             width: 140px !important;
             height: 140px !important;
             border-radius: 50% !important;
@@ -77,7 +77,7 @@ def local_css():
             align-items: center;
             justify-content: center;
             margin: 0 auto 15px auto !important;
-            box-shadow: 0 10px 25px rgba(0, 128, 0, 0.3) !important;
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4) !important;
             border: 5px solid #ffffff !important;
         }
 
@@ -89,7 +89,7 @@ def local_css():
             flex-wrap: wrap !important;
         }
         div[role="radiogroup"] label {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            background: linear-gradient(135deg, #fbc02d 0%, #f57f17 100%) !important;
             border: none !important;
             padding: 10px 20px !important;
             border-radius: 25px !important;
@@ -109,7 +109,7 @@ def local_css():
             transform: translateY(-2px) !important;
         }
         .stRadio > label {
-            color: #117a2d !important;
+            color: #e65100 !important;
             font-weight: 800 !important;
             font-size: 1.3rem !important;
             margin-bottom: 15px !important;
@@ -119,7 +119,7 @@ def local_css():
 
         /* ปุ่มกดปกติของ Streamlit */
         div.stButton > button {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            background: linear-gradient(135deg, #fbc02d 0%, #f57f17 100%) !important;
             color: #ffffff !important;
             border: none !important;
             border-radius: 15px !important;
@@ -137,7 +137,7 @@ def local_css():
             color: #ffffff !important;
         }
         div[data-testid="column"] button {
-             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+             background: linear-gradient(135deg, #fbc02d 0%, #f57f17 100%) !important;
              color: #ffffff !important;
              border: none !important;
         }
@@ -157,14 +157,14 @@ def local_css():
         }
         
         h1 { 
-            text-align: center; color: #2E7D32 !important; 
+            text-align: center; color: #e65100 !important; 
             font-weight: 800 !important; font-size: 2.2rem !important;
-            margin-bottom: 5px !important; text-shadow: 2px 2px 0px #e8f5e9;
+            margin-bottom: 5px !important; text-shadow: 2px 2px 0px #fff8e1;
         }
 
         /* --- [CSS สำหรับปุ่มลิงก์ HTML ที่สร้างเอง] --- */
         .custom-home-btn {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #fbc02d 0%, #f57f17 100%);
             color: #ffffff !important;
             text-decoration: none;
             padding: 0.8rem 2rem;
@@ -191,23 +191,25 @@ local_css()
 
 # --- 3. ฟังก์ชัน Database ---
 def init_connection():
+    # ⚠️ อย่าลืมแก้ชื่อ Database ถ้าคุณสร้าง DB ใหม่สำหรับข้าวโพด ⚠️
     return mysql.connector.connect(
         host="www.cedubru.com",     
-        user="cedubruc_culantro_db",        
-        password="PGqGdtYLPv2vJzag8DrK",
-        database="cedubruc_culantro_db"
+        user="cedubruc_corn_db",        
+        password="zj2wRET8wxzCMQPKEb2N",
+        database="cedubruc_corn_db" 
     )
 
 def get_image_list(filter_mode):
     try:
         conn = init_connection()
         cursor = conn.cursor()
+        # ⚠️ แก้ชื่อตารางเป็น corn_images ⚠️
         if "ยังไม่ตรวจ" in filter_mode:
-            sql = "SELECT id, image_name, prediction_result FROM culantro_images WHERE prediction_result IS NULL ORDER BY id ASC"
+            sql = "SELECT id, image_name, prediction_result FROM corn_images WHERE prediction_result IS NULL ORDER BY id ASC"
         elif "ตรวจแล้ว" in filter_mode:
-            sql = "SELECT id, image_name, prediction_result FROM culantro_images WHERE prediction_result IS NOT NULL ORDER BY id DESC"
+            sql = "SELECT id, image_name, prediction_result FROM corn_images WHERE prediction_result IS NOT NULL ORDER BY id DESC"
         else:
-            sql = "SELECT id, image_name, prediction_result FROM culantro_images ORDER BY id DESC"
+            sql = "SELECT id, image_name, prediction_result FROM corn_images ORDER BY id DESC"
         cursor.execute(sql)
         data = cursor.fetchall()
         conn.close()
@@ -220,7 +222,8 @@ def get_image_data(img_id):
     try:
         conn = init_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT image_data, prediction_result, confidence FROM culantro_images WHERE id = %s", (img_id,))
+        # ⚠️ แก้ชื่อตารางเป็น corn_images ⚠️
+        cursor.execute("SELECT image_data, prediction_result, confidence FROM corn_images WHERE id = %s", (img_id,))
         data = cursor.fetchone()
         conn.close()
         return data 
@@ -230,7 +233,8 @@ def update_database(img_id, result, confidence):
     try:
         conn = init_connection()
         cursor = conn.cursor()
-        sql = "UPDATE culantro_images SET prediction_result = %s, confidence = %s WHERE id = %s"
+        # ⚠️ แก้ชื่อตารางเป็น corn_images ⚠️
+        sql = "UPDATE corn_images SET prediction_result = %s, confidence = %s WHERE id = %s"
         cursor.execute(sql, (result, float(confidence), img_id))
         conn.commit()
         conn.close()
@@ -243,19 +247,20 @@ else: cache_decorator = st.experimental_singleton
 
 @cache_decorator
 def load_model():
-    filename = 'culantro_weights_full_B4.h5'
+    # ⚠️ ตั้งชื่อไฟล์โมเดลใหม่ ⚠️
+    filename = 'corn_model_full_v1.h5'
     
     # -------------------------------------------------------------
-    # ⚠️ [สำคัญ] แก้ไขตรงนี้: ใส่ File ID จาก Google Drive ของคุณ ⚠️
+    # ⚠️ [สำคัญมาก] ใส่ File ID โมเดลข้าวโพด จาก Google Drive ของคุณ ⚠️
     # -------------------------------------------------------------
-    file_id = '1zeAce_cSSgbDf6TsbOkF1QzwgtY80758' 
-    # ตัวอย่าง: file_id = '1234abcd5678efgh...'
+    file_id = '1Wp-evSKo2eajsNqAg3s1jAeRjeUhtgag' 
+    # ตัวอย่าง: file_id = '1A2b3C4d5E...'
     
     url = f'https://drive.google.com/uc?id={file_id}'
 
     # เช็คว่ามีไฟล์ไหม ถ้าไม่มีให้โหลด
     if not os.path.exists(filename):
-        with st.spinner("⏳ กำลังดาวน์โหลดโมเดลจาก Google Drive... (ครั้งแรกอาจนานหน่อย)"):
+        with st.spinner("⏳ กำลังดาวน์โหลดโมเดลข้าวโพด... (ครั้งแรกอาจนานหน่อย)"):
             try:
                 gdown.download(url, filename, quiet=False)
             except Exception as e:
@@ -270,7 +275,8 @@ def load_model():
         return None
 
 def import_and_predict(image_data, model):
-    size = (380, 380)
+    # ⚠️ เช็คขนาดรูปที่โมเดลข้าวโพดต้องการ (ปกติ EfficientNet ใช้ 224, 300, 380)
+    size = (380, 380) 
     try:
         image = ImageOps.fit(image_data, size, Image.Resampling.LANCZOS)
     except AttributeError:
@@ -284,10 +290,10 @@ def import_and_predict(image_data, model):
 model = load_model()
 
 st.markdown("""
-    <div class='app-header-icon'>🌿</div>
-    <h1>Culantro Doctor AI</h1>
+    <div class='app-header-icon'>🌽</div>
+    <h1>Corn Doctor AI</h1>
     <p style='text-align: center; color: #555; margin-bottom: 30px; font-size: 1.1rem;'>
-        ระบบวินิจฉัยโรคผักชีฝรั่งอัจฉริยะด้วย AI
+        ระบบวินิจฉัยโรคใบข้าวโพดอัจฉริยะด้วย AI
     </p>
 """, unsafe_allow_html=True)
 
@@ -314,7 +320,7 @@ if len(image_list) > 0:
     
     # --- แสดงผล ---
     st.markdown("---")
-    st.markdown(f"<div style='text-align: center; color: #333; margin-bottom: 15px; font-weight: normal; font-size: 1.1rem; background: #e8f5e9; padding: 10px; border-radius: 10px;'>📸 รูปที่ {st.session_state.current_index + 1} / {len(id_list)} (ID: {current_id})</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; color: #333; margin-bottom: 15px; font-weight: normal; font-size: 1.1rem; background: #fff8e1; padding: 10px; border-radius: 10px;'>📸 รูปที่ {st.session_state.current_index + 1} / {len(id_list)} (ID: {current_id})</div>", unsafe_allow_html=True)
 
     data_row = get_image_data(current_id)
     
@@ -352,15 +358,23 @@ if len(image_list) > 0:
                     if model:
                         with st.spinner("AI กำลังทำงาน..."):
                             preds = import_and_predict(image, model)
-                            class_names = ['Healthy', 'Leaf_Blight', 'Soft_Rot']
+                            
+                            # -------------------------------------------------------------
+                            # ⚠️ [ส่วนสำคัญ 2] แก้ไข Class Name ให้ตรงกับ Model ข้าวโพด ⚠️
+                            # -------------------------------------------------------------
+                            # ตัวอย่าง 4 class มาตรฐาน (แก้ตามโมเดลจริงของคุณ)
+                            class_names = ['Common_Rust', 'Gray_Leaf_Spot', 'Blight', 'Healthy']
+                            
                             idx = np.argmax(preds)
                             res_eng = class_names[idx]
                             conf = np.max(preds) * 100
                             
+                            # แปลเป็นไทย
                             th_dict = {
-                                'Healthy': 'ปกติ (แข็งแรง)',
-                                'Leaf_Blight': 'โรคใบไหม้ (Leaf Blight)',
-                                'Soft_Rot': 'โรคเน่าเละ (Soft Rot)'
+                                'Common_Rust': 'โรคราสนิม (Common Rust)',
+                                'Gray_Leaf_Spot': 'โรคใบจุดสีเทา (Gray Leaf Spot)',
+                                'Blight': 'โรคใบไหม้แผลใหญ่ (Blight)',
+                                'Healthy': 'ปกติ (Healthy)'
                             }
                             final_res = th_dict.get(res_eng, res_eng)
                             
@@ -385,15 +399,19 @@ if len(image_list) > 0:
                                     blob_data = data_row[0]
                                     image = Image.open(io.BytesIO(blob_data))
                                     preds = import_and_predict(image, model)
-                                    class_names = ['Healthy', 'Leaf_Blight', 'Soft_Rot']
+                                    
+                                    # ⚠️ ใช้ Class Name เดียวกันกับข้างบน
+                                    class_names = ['Common_Rust', 'Gray_Leaf_Spot', 'Blight', 'Healthy']
+                                    
                                     idx = np.argmax(preds)
                                     res_eng = class_names[idx]
                                     conf = np.max(preds) * 100
                                     
                                     th_dict = {
-                                        'Healthy': 'ปกติ (แข็งแรง)',
-                                        'Leaf_Blight': 'โรคใบไหม้ (Leaf Blight)',
-                                        'Soft_Rot': 'โรคเน่าเละ (Soft Rot)'
+                                        'Common_Rust': 'โรคราสนิม (Common Rust)',
+                                        'Gray_Leaf_Spot': 'โรคใบจุดสีเทา (Gray Leaf Spot)',
+                                        'Blight': 'โรคใบไหม้แผลใหญ่ (Blight)',
+                                        'Healthy': 'ปกติ (Healthy)'
                                     }
                                     final_res = th_dict.get(res_eng, res_eng)
                                     update_database(img_id, final_res, conf)
@@ -404,7 +422,7 @@ if len(image_list) > 0:
                             time.sleep(1)
                             st.experimental_rerun()
 
-    # --- ปุ่มนำทาง (แก้ให้วนลูป) ---
+    # --- ปุ่มนำทาง ---
     st.markdown("<br>", unsafe_allow_html=True) 
     c_prev, c_empty, c_next = st.columns([1, 0.2, 1]) 
     
@@ -434,9 +452,9 @@ else:
     st.warning("ไม่พบข้อมูลในฐานข้อมูลตามตัวกรองที่เลือก")
 
 # --- [ส่วนปุ่มลิงก์ HTML ที่เพิ่มใหม่] ---
-# ⚠️ เปลี่ยนลิงก์ด้านล่างให้เป็นเว็บที่คุณต้องการ ⚠️
+# ⚠️ เปลี่ยนลิงก์ให้เป็น Path ของเว็บตรวจโรคข้าวโพดของคุณ ⚠️
 base_url = "http://www.cedubru.com/"
-path = "ตรวจโรคผักชีฝรั่ง/"
+path = "ตรวจโรคใบข้าวโพด/" # แก้ Path ให้ตรงกับโฟลเดอร์จริง
 full_url = base_url + urllib.parse.quote(path)
 
 st.markdown(f"""
@@ -449,6 +467,6 @@ st.markdown(f"""
 
 st.markdown("""
     <div class="footer-credit">
-        <strong>ระบบวินิจฉัยโรคผักชีฝรั่ง V.1.0</strong>
+        <strong>ระบบวินิจฉัยโรคใบข้าวโพด V.1.0</strong>
     </div>
 """, unsafe_allow_html=True)
