@@ -83,7 +83,7 @@ local_css()
 
 # ⚠️ URL สำหรับดึงรูปภาพ (ต้องตรงกับที่อยู่เว็บจริงของคุณ)
 # จากโค้ด PHP ของคุณ ไฟล์จะอยู่ที่โฟลเดอร์ uploads/
-BASE_IMAGE_URL = "http://www.cedubru.com/cedubru_corn/uploads/" 
+BASE_IMAGE_URL = "http://www.cedubru.com/corn/uploads/" 
 # หมายเหตุ: ถ้าวางโค้ด PHP ไว้ที่ root ให้แก้เป็น "http://www.cedubru.com/uploads/" หรือตามชื่อโฟลเดอร์โปรเจกต์
 
 def init_connection():
