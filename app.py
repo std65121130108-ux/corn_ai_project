@@ -196,7 +196,7 @@ local_css()
 
 # --- 3. ฟังก์ชัน Database (อัปเดตให้รองรับ DB ใหม่) ---
 # URL ของรูปภาพบน Server จริง
-BASE_IMAGE_URL = "http://www.cedubru.com/cedubru_corn/uploads/" 
+BASE_IMAGE_URL = "http://www.cedubru.com/corn/uploads/" 
 
 def init_connection():
     return mysql.connector.connect(
@@ -482,7 +482,7 @@ else:
 
 # --- ปุ่มลิงก์ HTML ---
 base_url = "http://www.cedubru.com/"
-path = "cedubru_corn/" # ตรวจสอบให้แน่ใจว่า path นี้ถูกต้อง
+path = "corn/" # ตรวจสอบให้แน่ใจว่า path นี้ถูกต้อง
 full_url = base_url + path
 
 st.markdown(f"""
