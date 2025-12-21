@@ -195,7 +195,7 @@ def local_css():
 local_css()
 
 # --- 3. ฟังก์ชัน Database ---
-BASE_IMAGE_URL = "http://www.cedubru.com/cedubru_corn/uploads/" 
+BASE_IMAGE_URL = "http://www.cedubru.com/corn/uploads/" 
 
 def init_connection():
     return mysql.connector.connect(
@@ -281,7 +281,7 @@ else: cache_decorator = st.experimental_singleton
 @cache_decorator
 def load_model():
     filename = 'corn_model_full_v1.h5'
-    file_id = '1Wp-evSKo2eajsNqAg3s1jAeRjeUhtgag'
+    file_id = '1qWALZiNUsohslr5ADgOESE3YRS5P_OS_'
     url = f'https://drive.google.com/uc?id={file_id}'
 
     if not os.path.exists(filename):
@@ -487,7 +487,7 @@ else:
 
 # --- ปุ่มลิงก์ HTML ---
 base_url = "http://www.cedubru.com/"
-path = "cedubru_corn/" 
+path = "corn/" 
 full_url = base_url + path
 
 st.markdown(f"""
